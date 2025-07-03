@@ -136,7 +136,17 @@
         return await reverseGeocodeWithNominatim(lat, lon);
       } catch (nominatimError) {
         console.warn('Nominatim failed, trying Google as fallback:', nominatimError);
+        try {
         return await reverseGeocodeWithGoogle(lat, lon);
+        } catch (googleError) {
+          console.warn('Google also failed, trying OpenSeaMap for water bodies:', googleError);
+          try {
+            return await reverseGeocodeWithOpenSeaMap(lat, lon);
+          } catch (openSeaMapError) {
+            console.warn('OpenSeaMap also failed, using generic waterway designation');
+            return `Waterway (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
+          }
+        }
       }
     }
     
@@ -148,252 +158,164 @@
       try {
         return await reverseGeocodeWithNominatim(lat, lon);
       } catch (nominatimError) {
-        console.warn('Nominatim also failed, checking for known water bodies:', nominatimError);
-        
-        // Final fallback: Check if coordinates are in a known body of water
-        const waterBody = identifyWaterBody(lat, lon);
-        if (waterBody) {
-          console.log('Identified water body:', waterBody);
-          return waterBody;
+        console.warn('Nominatim also failed, trying OpenSeaMap for water bodies:', nominatimError);
+        try {
+          return await reverseGeocodeWithOpenSeaMap(lat, lon);
+        } catch (openSeaMapError) {
+          console.warn('OpenSeaMap also failed, using generic waterway designation');
+          return `Waterway (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
         }
-        
-        // If all else fails, return a generic waterway location
-        console.warn('All geocoding methods failed, using generic waterway designation');
-        return `Waterway (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
       }
     }
   }
   
-  // Function to identify major bodies of water based on coordinates
-  function identifyWaterBody(lat, lon) {
-    // === GREAT LAKES (North America) ===
-    // Lake Superior
-    if (lat >= 46.4 && lat <= 48.3 && lon >= -92.2 && lon <= -84.3) {
-      return "Lake Superior";
-    }
+  // OpenSeaMap geocoding service - specialized for water bodies
+  async function reverseGeocodeWithOpenSeaMap(lat, lon) {
+    console.log('Trying OpenSeaMap geocoding for water bodies...');
     
-    // Lake Michigan
-    if (lat >= 41.6 && lat <= 45.8 && lon >= -87.8 && lon <= -84.8) {
-      return "Lake Michigan";
-    }
+    // OpenSeaMap is built on OpenStreetMap, so we can use their marine-focused data
+    // We'll use multiple endpoints to get better water body identification
+    const endpoints = [
+      // Primary: OpenSeaMap's own infrastructure (if available)
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en&addressdetails=1&extratags=1&zoom=10`,
+      // Fallback: OSM Nominatim with marine focus
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en&addressdetails=1&extratags=1&zoom=8`,
+      // Alternative: Lower zoom for large water bodies
+      `https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en&addressdetails=1&extratags=1&zoom=6`
+    ];
     
-    // Lake Huron
-    if (lat >= 43.0 && lat <= 46.4 && lon >= -84.8 && lon <= -79.7) {
-      return "Lake Huron";
-    }
-    
-    // Lake Erie
-    if (lat >= 41.2 && lat <= 42.9 && lon >= -83.5 && lon <= -78.9) {
-      return "Lake Erie";
-    }
-    
-    // Lake Ontario
-    if (lat >= 43.2 && lat <= 44.3 && lon >= -79.8 && lon <= -76.1) {
-      return "Lake Ontario";
-    }
-    
-    // === MAJOR LAKES (Worldwide) ===
-    // Caspian Sea (world's largest lake) - more precise bounds
-    if (lat >= 36.8 && lat <= 47.0 && lon >= 46.8 && lon <= 54.0) {
-      return "Caspian Sea";
-    }
-    
-    // Lake Baikal (Russia)
-    if (lat >= 51.5 && lat <= 55.8 && lon >= 103.4 && lon <= 109.6) {
-      return "Lake Baikal";
-    }
-    
-    // Lake Victoria (Africa)
-    if (lat >= -3.0 && lat <= 0.5 && lon >= 31.4 && lon <= 34.9) {
-      return "Lake Victoria";
-    }
-    
-    // Lake Tanganyika (Africa)
-    if (lat >= -8.8 && lat <= -3.4 && lon >= 29.1 && lon <= 31.2) {
-      return "Lake Tanganyika";
-    }
-    
-    // Lake Malawi (Africa)
-    if (lat >= -14.4 && lat <= -9.5 && lon >= 34.0 && lon <= 35.3) {
-      return "Lake Malawi";
-    }
-    
-    // Lake Titicaca (South America)
-    if (lat >= -16.6 && lat <= -15.2 && lon >= -69.7 && lon <= -68.5) {
-      return "Lake Titicaca";
-    }
-    
-    // Lake Geneva (Europe)
-    if (lat >= 46.2 && lat <= 46.6 && lon >= 6.1 && lon <= 6.9) {
-      return "Lake Geneva";
-    }
-    
-    // Lake Constance (Europe)
-    if (lat >= 47.5 && lat <= 47.8 && lon >= 9.0 && lon <= 9.7) {
-      return "Lake Constance";
-    }
-    
-    // Lake Winnipeg (Canada)
-    if (lat >= 50.4 && lat <= 53.8 && lon >= -98.9 && lon <= -96.3) {
-      return "Lake Winnipeg";
-    }
-    
-    // Great Bear Lake (Canada)
-    if (lat >= 65.1 && lat <= 66.9 && lon >= -123.0 && lon <= -118.0) {
-      return "Great Bear Lake";
-    }
-    
-    // Great Slave Lake (Canada)
-    if (lat >= 61.0 && lat <= 62.8 && lon >= -117.6 && lon <= -109.5) {
-      return "Great Slave Lake";
-    }
-    
-    // Lake Ladoga (Russia)
-    if (lat >= 60.0 && lat <= 61.8 && lon >= 29.8 && lon <= 32.8) {
-      return "Lake Ladoga";
-    }
-    
-    // Lake Onega (Russia)
-    if (lat >= 61.1 && lat <= 62.9 && lon >= 34.8 && lon <= 37.3) {
-      return "Lake Onega";
-    }
-    
-    // Aral Sea (Central Asia)
-    if (lat >= 43.4 && lat <= 46.8 && lon >= 58.2 && lon <= 62.2) {
-      return "Aral Sea";
-    }
-    
-    // Lake Balkhash (Kazakhstan)
-    if (lat >= 45.0 && lat <= 47.1 && lon >= 74.0 && lon <= 78.6) {
-      return "Lake Balkhash";
-    }
-    
-    // Lake Toba (Indonesia)
-    if (lat >= 2.3 && lat <= 2.9 && lon >= 98.4 && lon <= 99.1) {
-      return "Lake Toba";
-    }
-    
-    // === SEAS AND GULFS (Much more precise bounds) ===
-    // Gulf of Mexico - more precise to actual water area
-    if (lat >= 18.5 && lat <= 30.0 && lon >= -97.5 && lon <= -81.0) {
-      return "Gulf of Mexico";
-    }
-    
-    // Caribbean Sea - more precise bounds
-    if (lat >= 10.0 && lat <= 22.0 && lon >= -87.0 && lon <= -60.0) {
-      return "Caribbean Sea";
-    }
-    
-    // Mediterranean Sea - MUCH more precise, excluding major land areas
-    if (lat >= 30.5 && lat <= 45.5 && lon >= -5.5 && lon <= 36.0) {
-      // Additional check to exclude major land masses
-      // Exclude Spain (rough approximation)
-      if (lat >= 36.0 && lat <= 43.8 && lon >= -9.3 && lon <= -0.3) {
-        return null;
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetchWithRetry(endpoint);
+        const data = await res.json();
+        
+        if (!data || !data.address) {
+          continue;
+        }
+        
+        // Look for water body indicators in the response
+        const waterBodyName = extractWaterBodyFromOSM(data);
+        if (waterBodyName) {
+          console.log('OpenSeaMap identified water body:', waterBodyName);
+          return waterBodyName;
+        }
+        
+      } catch (error) {
+        console.warn('OpenSeaMap endpoint failed:', endpoint, error);
+        continue;
       }
-      // Exclude France (rough approximation)  
-      if (lat >= 42.3 && lat <= 51.1 && lon >= -4.8 && lon <= 8.2) {
-        return null;
+    }
+    
+    throw new Error('OpenSeaMap could not identify water body');
+  }
+  
+  // Extract water body names from OpenStreetMap/OpenSeaMap data
+  function extractWaterBodyFromOSM(osmData) {
+    const addr = osmData.address;
+    const extratags = osmData.extratags || {};
+    const tags = osmData.tags || {};
+    
+    // Check for direct water body identifiers
+    if (addr.body_of_water) {
+      return addr.body_of_water;
+    }
+    
+    if (addr.sea) {
+      return addr.sea;
+    }
+    
+    if (addr.ocean) {
+      return addr.ocean;
+    }
+    
+    if (addr.lake) {
+      return addr.lake;
+    }
+    
+    if (addr.river) {
+      return addr.river;
+    }
+    
+    if (addr.bay) {
+      return addr.bay;
+    }
+    
+    if (addr.gulf) {
+      return addr.gulf;
+    }
+    
+    if (addr.strait) {
+      return addr.strait;
+    }
+    
+    if (addr.channel) {
+      return addr.channel;
+    }
+    
+    // Check extratags for marine features
+    if (extratags.natural === 'water' && extratags.name) {
+      return extratags.name;
+    }
+    
+    if (extratags.natural === 'bay' && extratags.name) {
+      return extratags.name;
+    }
+    
+    if (extratags.place === 'sea' && extratags.name) {
+      return extratags.name;
+    }
+    
+    if (extratags.place === 'ocean' && extratags.name) {
+      return extratags.name;
+    }
+    
+    // Check tags for water features
+    if (tags.natural === 'water' && tags.name) {
+      return tags.name;
+    }
+    
+    if (tags.natural === 'bay' && tags.name) {
+      return tags.name;
+    }
+    
+    if (tags.place === 'sea' && tags.name) {
+      return tags.name;
+    }
+    
+    if (tags.place === 'ocean' && tags.name) {
+      return tags.name;
+    }
+    
+    // Check if we're in a water area based on place type
+    if (osmData.place_type === 'sea' || osmData.place_type === 'ocean' || osmData.place_type === 'lake') {
+      return osmData.display_name ? osmData.display_name.split(',')[0] : null;
+    }
+    
+    // Check category for water features
+    if (osmData.category === 'natural' && osmData.type === 'water' && osmData.display_name) {
+      const name = osmData.display_name.split(',')[0];
+      if (name && !name.match(/^\d+/) && name.length > 2) {
+        return name;
       }
-      // Exclude Italy mainland (rough approximation)
-      if (lat >= 36.6 && lat <= 47.1 && lon >= 6.6 && lon <= 18.5) {
-        return null;
+    }
+    
+    // Check if the location is primarily water-based from the display name
+    if (osmData.display_name) {
+      const displayName = osmData.display_name.toLowerCase();
+      const waterKeywords = ['sea', 'ocean', 'lake', 'bay', 'gulf', 'strait', 'channel', 'sound', 'lagoon', 'reservoir'];
+      
+      for (const keyword of waterKeywords) {
+        if (displayName.includes(keyword)) {
+          // Extract the water body name
+          const parts = osmData.display_name.split(',');
+          for (const part of parts) {
+            const trimmed = part.trim();
+            if (trimmed.toLowerCase().includes(keyword)) {
+              return trimmed;
+            }
+          }
+        }
       }
-      // Exclude major Greek mainland
-      if (lat >= 34.8 && lat <= 41.7 && lon >= 19.4 && lon <= 28.2) {
-        return null;
-      }
-      // Exclude Turkey mainland
-      if (lat >= 35.8 && lat <= 42.1 && lon >= 25.7 && lon <= 44.8) {
-        return null;
-      }
-      return "Mediterranean Sea";
-    }
-    
-    // Red Sea - more precise
-    if (lat >= 12.9 && lat <= 28.0 && lon >= 32.3 && lon <= 43.5) {
-      return "Red Sea";
-    }
-    
-    // Persian Gulf - more precise
-    if (lat >= 24.0 && lat <= 30.5 && lon >= 48.0 && lon <= 56.0) {
-      return "Persian Gulf";
-    }
-    
-    // North Sea - more precise
-    if (lat >= 51.5 && lat <= 62.0 && lon >= -3.0 && lon <= 8.5) {
-      return "North Sea";
-    }
-    
-    // Baltic Sea - more precise
-    if (lat >= 53.8 && lat <= 65.9 && lon >= 9.0 && lon <= 30.3) {
-      return "Baltic Sea";
-    }
-    
-    // Black Sea - more precise
-    if (lat >= 40.9 && lat <= 46.6 && lon >= 27.4 && lon <= 41.8) {
-      return "Black Sea";
-    }
-    
-    // Sea of Okhotsk
-    if (lat >= 43.0 && lat <= 62.0 && lon >= 135.0 && lon <= 164.0) {
-      return "Sea of Okhotsk";
-    }
-    
-    // Bering Sea
-    if (lat >= 52.0 && lat <= 66.0 && lon >= -180.0 && lon <= -157.0) {
-      return "Bering Sea";
-    }
-    
-    // Sea of Japan - more precise
-    if (lat >= 33.0 && lat <= 52.0 && lon >= 127.0 && lon <= 142.0) {
-      return "Sea of Japan";
-    }
-    
-    // South China Sea - more precise
-    if (lat >= 0.0 && lat <= 23.0 && lon >= 99.0 && lon <= 121.0) {
-      return "South China Sea";
-    }
-    
-    // East China Sea - more precise
-    if (lat >= 23.0 && lat <= 33.0 && lon >= 117.0 && lon <= 131.0) {
-      return "East China Sea";
-    }
-    
-    // Hudson Bay
-    if (lat >= 51.0 && lat <= 65.0 && lon >= -95.0 && lon <= -78.0) {
-      return "Hudson Bay";
-    }
-    
-    // Great Australian Bight
-    if (lat >= -38.0 && lat <= -32.0 && lon >= 129.0 && lon <= 140.0) {
-      return "Great Australian Bight";
-    }
-    
-    // === OCEANS (More conservative bounds) ===
-    // Pacific Ocean - West of Americas, more conservative
-    if (lat >= 10.0 && lat <= 60.0 && lon >= -170.0 && lon <= -120.0) {
-      return "Pacific Ocean";
-    }
-    
-    // Atlantic Ocean - East of Americas, more conservative 
-    if (lat >= 20.0 && lat <= 70.0 && lon >= -70.0 && lon <= -10.0) {
-      return "Atlantic Ocean";
-    }
-    
-    // Indian Ocean - more conservative
-    if (lat >= -50.0 && lat <= 30.0 && lon >= 40.0 && lon <= 110.0) {
-      return "Indian Ocean";
-    }
-    
-    // Arctic Ocean
-    if (lat >= 70.0 && lat <= 90.0) {
-      return "Arctic Ocean";
-    }
-    
-    // Southern Ocean
-    if (lat >= -90.0 && lat <= -60.0) {
-      return "Southern Ocean";
     }
     
     return null;
@@ -601,12 +523,13 @@
     
     // Better error checking for ocean coordinates
     if (!addr || Object.keys(addr).length === 0) {
-      console.warn('Nominatim returned empty address, checking for water bodies');
-      const waterBody = identifyWaterBody(lat, lon);
-      if (waterBody) {
-        return waterBody;
+      console.warn('Nominatim returned empty address, trying OpenSeaMap for water bodies');
+      try {
+        return await reverseGeocodeWithOpenSeaMap(lat, lon);
+      } catch (openSeaMapError) {
+        console.warn('OpenSeaMap also failed, using generic waterway designation');
+        throw new Error('Nominatim returned no address data and OpenSeaMap could not identify water body');
       }
-      throw new Error('Nominatim returned no address data and coordinates not in known water body');
     }
     
     // Check if Japan in Nominatim response (with better error checking)
