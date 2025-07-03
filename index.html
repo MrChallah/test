@@ -166,6 +166,200 @@
   
   // Function to identify major bodies of water based on coordinates
   function identifyWaterBody(lat, lon) {
+    // === GREAT LAKES (North America) ===
+    // Lake Superior
+    if (lat >= 46.4 && lat <= 48.3 && lon >= -92.2 && lon <= -84.3) {
+      return "Lake Superior";
+    }
+    
+    // Lake Michigan
+    if (lat >= 41.6 && lat <= 45.8 && lon >= -87.8 && lon <= -84.8) {
+      return "Lake Michigan";
+    }
+    
+    // Lake Huron
+    if (lat >= 43.0 && lat <= 46.4 && lon >= -84.8 && lon <= -79.7) {
+      return "Lake Huron";
+    }
+    
+    // Lake Erie
+    if (lat >= 41.2 && lat <= 42.9 && lon >= -83.5 && lon <= -78.9) {
+      return "Lake Erie";
+    }
+    
+    // Lake Ontario
+    if (lat >= 43.2 && lat <= 44.3 && lon >= -79.8 && lon <= -76.1) {
+      return "Lake Ontario";
+    }
+    
+    // === MAJOR LAKES (Worldwide) ===
+    // Caspian Sea (world's largest lake)
+    if (lat >= 36.5 && lat <= 47.1 && lon >= 46.5 && lon <= 54.1) {
+      return "Caspian Sea";
+    }
+    
+    // Lake Baikal (Russia)
+    if (lat >= 51.5 && lat <= 55.8 && lon >= 103.4 && lon <= 109.6) {
+      return "Lake Baikal";
+    }
+    
+    // Lake Victoria (Africa)
+    if (lat >= -3.0 && lat <= 0.5 && lon >= 31.4 && lon <= 34.9) {
+      return "Lake Victoria";
+    }
+    
+    // Lake Tanganyika (Africa)
+    if (lat >= -8.8 && lat <= -3.4 && lon >= 29.1 && lon <= 31.2) {
+      return "Lake Tanganyika";
+    }
+    
+    // Lake Malawi (Africa)
+    if (lat >= -14.4 && lat <= -9.5 && lon >= 34.0 && lon <= 35.3) {
+      return "Lake Malawi";
+    }
+    
+    // Lake Titicaca (South America)
+    if (lat >= -16.6 && lat <= -15.2 && lon >= -69.7 && lon <= -68.5) {
+      return "Lake Titicaca";
+    }
+    
+    // Lake Geneva (Europe)
+    if (lat >= 46.2 && lat <= 46.6 && lon >= 6.1 && lon <= 6.9) {
+      return "Lake Geneva";
+    }
+    
+    // Lake Constance (Europe)
+    if (lat >= 47.5 && lat <= 47.8 && lon >= 9.0 && lon <= 9.7) {
+      return "Lake Constance";
+    }
+    
+    // Lake Winnipeg (Canada)
+    if (lat >= 50.4 && lat <= 53.8 && lon >= -98.9 && lon <= -96.3) {
+      return "Lake Winnipeg";
+    }
+    
+    // Great Bear Lake (Canada)
+    if (lat >= 65.1 && lat <= 66.9 && lon >= -123.0 && lon <= -118.0) {
+      return "Great Bear Lake";
+    }
+    
+    // Great Slave Lake (Canada)
+    if (lat >= 61.0 && lat <= 62.8 && lon >= -117.6 && lon <= -109.5) {
+      return "Great Slave Lake";
+    }
+    
+    // Lake Ladoga (Russia)
+    if (lat >= 60.0 && lat <= 61.8 && lon >= 29.8 && lon <= 32.8) {
+      return "Lake Ladoga";
+    }
+    
+    // Lake Onega (Russia)
+    if (lat >= 61.1 && lat <= 62.9 && lon >= 34.8 && lon <= 37.3) {
+      return "Lake Onega";
+    }
+    
+    // Aral Sea (Central Asia)
+    if (lat >= 43.4 && lat <= 46.8 && lon >= 58.2 && lon <= 62.2) {
+      return "Aral Sea";
+    }
+    
+    // Lake Balkhash (Kazakhstan)
+    if (lat >= 45.0 && lat <= 47.1 && lon >= 74.0 && lon <= 78.6) {
+      return "Lake Balkhash";
+    }
+    
+    // Lake Toba (Indonesia)
+    if (lat >= 2.3 && lat <= 2.9 && lon >= 98.4 && lon <= 99.1) {
+      return "Lake Toba";
+    }
+    
+    // === MAJOR RIVERS ===
+    // Mississippi River (USA)
+    if (lat >= 29.0 && lat <= 47.2 && lon >= -95.2 && lon <= -89.1) {
+      return "Mississippi River";
+    }
+    
+    // Amazon River (South America)
+    if (lat >= -5.0 && lat <= 2.0 && lon >= -78.0 && lon <= -49.0) {
+      return "Amazon River";
+    }
+    
+    // Nile River (Africa)
+    if (lat >= 0.0 && lat <= 31.6 && lon >= 29.5 && lon <= 35.0) {
+      return "Nile River";
+    }
+    
+    // Yangtze River (China)
+    if (lat >= 25.4 && lat <= 35.7 && lon >= 90.0 && lon <= 122.0) {
+      return "Yangtze River";
+    }
+    
+    // Yellow River (China)
+    if (lat >= 32.1 && lat <= 41.0 && lon >= 95.9 && lon <= 119.0) {
+      return "Yellow River";
+    }
+    
+    // Ganges River (India/Bangladesh)
+    if (lat >= 22.0 && lat <= 31.1 && lon >= 78.0 && lon <= 90.6) {
+      return "Ganges River";
+    }
+    
+    // Danube River (Europe)
+    if (lat >= 43.7 && lat <= 48.6 && lon >= 8.2 && lon <= 29.8) {
+      return "Danube River";
+    }
+    
+    // Rhine River (Europe)
+    if (lat >= 47.6 && lat <= 52.0 && lon >= 6.0 && lon <= 9.0) {
+      return "Rhine River";
+    }
+    
+    // Thames River (UK)
+    if (lat >= 51.4 && lat <= 51.9 && lon >= -0.9 && lon <= 0.9) {
+      return "Thames River";
+    }
+    
+    // St. Lawrence River (Canada/USA)
+    if (lat >= 44.1 && lat <= 50.2 && lon >= -84.8 && lon <= -55.7) {
+      return "St. Lawrence River";
+    }
+    
+    // Columbia River (USA/Canada)
+    if (lat >= 45.2 && lat <= 50.2 && lon >= -124.1 && lon <= -116.0) {
+      return "Columbia River";
+    }
+    
+    // Colorado River (USA/Mexico)
+    if (lat >= 31.8 && lat <= 40.5 && lon >= -115.2 && lon <= -105.4) {
+      return "Colorado River";
+    }
+    
+    // Volga River (Russia)
+    if (lat >= 45.9 && lat <= 57.1 && lon >= 39.9 && lon <= 49.4) {
+      return "Volga River";
+    }
+    
+    // Ob River (Russia)
+    if (lat >= 50.0 && lat <= 67.0 && lon >= 60.0 && lon <= 85.0) {
+      return "Ob River";
+    }
+    
+    // Yenisei River (Russia)
+    if (lat >= 51.0 && lat <= 72.0 && lon >= 84.0 && lon <= 108.0) {
+      return "Yenisei River";
+    }
+    
+    // Lena River (Russia)
+    if (lat >= 60.0 && lat <= 73.0 && lon >= 108.0 && lon <= 130.0) {
+      return "Lena River";
+    }
+    
+    // Mekong River (Southeast Asia)
+    if (lat >= 9.0 && lat <= 35.0 && lon >= 94.0 && lon <= 109.0) {
+      return "Mekong River";
+    }
+    
+    // === SEAS AND GULFS ===
     // Gulf of Mexico
     if (lat >= 18.0 && lat <= 30.5 && lon >= -98.0 && lon <= -80.5) {
       return "Gulf of Mexico";
@@ -174,16 +368,6 @@
     // Caribbean Sea
     if (lat >= 9.0 && lat <= 22.0 && lon >= -90.0 && lon <= -60.0) {
       return "Caribbean Sea";
-    }
-    
-    // Pacific Ocean - West of Mexico/Central America
-    if (lat >= 5.0 && lat <= 35.0 && lon >= -140.0 && lon <= -105.0) {
-      return "Pacific Ocean";
-    }
-    
-    // Atlantic Ocean - East of US/Caribbean
-    if (lat >= 15.0 && lat <= 45.0 && lon >= -80.0 && lon <= -40.0) {
-      return "Atlantic Ocean";
     }
     
     // Mediterranean Sea
@@ -214,6 +398,67 @@
     // Black Sea
     if (lat >= 40.0 && lat <= 47.0 && lon >= 27.0 && lon <= 42.0) {
       return "Black Sea";
+    }
+    
+    // Sea of Okhotsk
+    if (lat >= 43.0 && lat <= 62.0 && lon >= 135.0 && lon <= 164.0) {
+      return "Sea of Okhotsk";
+    }
+    
+    // Bering Sea
+    if (lat >= 52.0 && lat <= 66.0 && lon >= -180.0 && lon <= -157.0) {
+      return "Bering Sea";
+    }
+    
+    // Sea of Japan
+    if (lat >= 33.0 && lat <= 52.0 && lon >= 127.0 && lon <= 142.0) {
+      return "Sea of Japan";
+    }
+    
+    // South China Sea
+    if (lat >= 0.0 && lat <= 23.0 && lon >= 99.0 && lon <= 121.0) {
+      return "South China Sea";
+    }
+    
+    // East China Sea
+    if (lat >= 23.0 && lat <= 33.0 && lon >= 117.0 && lon <= 131.0) {
+      return "East China Sea";
+    }
+    
+    // Hudson Bay
+    if (lat >= 51.0 && lat <= 65.0 && lon >= -95.0 && lon <= -78.0) {
+      return "Hudson Bay";
+    }
+    
+    // Great Australian Bight
+    if (lat >= -38.0 && lat <= -32.0 && lon >= 129.0 && lon <= 140.0) {
+      return "Great Australian Bight";
+    }
+    
+    // === OCEANS (Broader regions) ===
+    // Pacific Ocean - West of Mexico/Central America
+    if (lat >= 5.0 && lat <= 35.0 && lon >= -140.0 && lon <= -105.0) {
+      return "Pacific Ocean";
+    }
+    
+    // Atlantic Ocean - East of US/Caribbean
+    if (lat >= 15.0 && lat <= 45.0 && lon >= -80.0 && lon <= -40.0) {
+      return "Atlantic Ocean";
+    }
+    
+    // Indian Ocean
+    if (lat >= -40.0 && lat <= 30.0 && lon >= 40.0 && lon <= 100.0) {
+      return "Indian Ocean";
+    }
+    
+    // Arctic Ocean
+    if (lat >= 66.0 && lat <= 90.0) {
+      return "Arctic Ocean";
+    }
+    
+    // Southern Ocean
+    if (lat >= -90.0 && lat <= -60.0) {
+      return "Southern Ocean";
     }
     
     return null;
