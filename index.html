@@ -157,9 +157,9 @@
           return waterBody;
         }
         
-        // If all else fails, return a generic ocean location
-        console.warn('All geocoding methods failed, using generic ocean designation');
-        return `Ocean (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
+        // If all else fails, return a generic waterway location
+        console.warn('All geocoding methods failed, using generic waterway designation');
+        return `Waterway (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
       }
     }
   }
