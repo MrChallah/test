@@ -193,8 +193,8 @@
     }
     
     // === MAJOR LAKES (Worldwide) ===
-    // Caspian Sea (world's largest lake)
-    if (lat >= 36.5 && lat <= 47.1 && lon >= 46.5 && lon <= 54.1) {
+    // Caspian Sea (world's largest lake) - more precise bounds
+    if (lat >= 36.8 && lat <= 47.0 && lon >= 46.8 && lon <= 54.0) {
       return "Caspian Sea";
     }
     
@@ -273,130 +273,65 @@
       return "Lake Toba";
     }
     
-    // === MAJOR RIVERS ===
-    // Mississippi River (USA)
-    if (lat >= 29.0 && lat <= 47.2 && lon >= -95.2 && lon <= -89.1) {
-      return "Mississippi River";
-    }
-    
-    // Amazon River (South America)
-    if (lat >= -5.0 && lat <= 2.0 && lon >= -78.0 && lon <= -49.0) {
-      return "Amazon River";
-    }
-    
-    // Nile River (Africa)
-    if (lat >= 0.0 && lat <= 31.6 && lon >= 29.5 && lon <= 35.0) {
-      return "Nile River";
-    }
-    
-    // Yangtze River (China)
-    if (lat >= 25.4 && lat <= 35.7 && lon >= 90.0 && lon <= 122.0) {
-      return "Yangtze River";
-    }
-    
-    // Yellow River (China)
-    if (lat >= 32.1 && lat <= 41.0 && lon >= 95.9 && lon <= 119.0) {
-      return "Yellow River";
-    }
-    
-    // Ganges River (India/Bangladesh)
-    if (lat >= 22.0 && lat <= 31.1 && lon >= 78.0 && lon <= 90.6) {
-      return "Ganges River";
-    }
-    
-    // Danube River (Europe)
-    if (lat >= 43.7 && lat <= 48.6 && lon >= 8.2 && lon <= 29.8) {
-      return "Danube River";
-    }
-    
-    // Rhine River (Europe)
-    if (lat >= 47.6 && lat <= 52.0 && lon >= 6.0 && lon <= 9.0) {
-      return "Rhine River";
-    }
-    
-    // Thames River (UK)
-    if (lat >= 51.4 && lat <= 51.9 && lon >= -0.9 && lon <= 0.9) {
-      return "Thames River";
-    }
-    
-    // St. Lawrence River (Canada/USA)
-    if (lat >= 44.1 && lat <= 50.2 && lon >= -84.8 && lon <= -55.7) {
-      return "St. Lawrence River";
-    }
-    
-    // Columbia River (USA/Canada)
-    if (lat >= 45.2 && lat <= 50.2 && lon >= -124.1 && lon <= -116.0) {
-      return "Columbia River";
-    }
-    
-    // Colorado River (USA/Mexico)
-    if (lat >= 31.8 && lat <= 40.5 && lon >= -115.2 && lon <= -105.4) {
-      return "Colorado River";
-    }
-    
-    // Volga River (Russia)
-    if (lat >= 45.9 && lat <= 57.1 && lon >= 39.9 && lon <= 49.4) {
-      return "Volga River";
-    }
-    
-    // Ob River (Russia)
-    if (lat >= 50.0 && lat <= 67.0 && lon >= 60.0 && lon <= 85.0) {
-      return "Ob River";
-    }
-    
-    // Yenisei River (Russia)
-    if (lat >= 51.0 && lat <= 72.0 && lon >= 84.0 && lon <= 108.0) {
-      return "Yenisei River";
-    }
-    
-    // Lena River (Russia)
-    if (lat >= 60.0 && lat <= 73.0 && lon >= 108.0 && lon <= 130.0) {
-      return "Lena River";
-    }
-    
-    // Mekong River (Southeast Asia)
-    if (lat >= 9.0 && lat <= 35.0 && lon >= 94.0 && lon <= 109.0) {
-      return "Mekong River";
-    }
-    
-    // === SEAS AND GULFS ===
-    // Gulf of Mexico
-    if (lat >= 18.0 && lat <= 30.5 && lon >= -98.0 && lon <= -80.5) {
+    // === SEAS AND GULFS (Much more precise bounds) ===
+    // Gulf of Mexico - more precise to actual water area
+    if (lat >= 18.5 && lat <= 30.0 && lon >= -97.5 && lon <= -81.0) {
       return "Gulf of Mexico";
     }
     
-    // Caribbean Sea
-    if (lat >= 9.0 && lat <= 22.0 && lon >= -90.0 && lon <= -60.0) {
+    // Caribbean Sea - more precise bounds
+    if (lat >= 10.0 && lat <= 22.0 && lon >= -87.0 && lon <= -60.0) {
       return "Caribbean Sea";
     }
     
-    // Mediterranean Sea
-    if (lat >= 30.0 && lat <= 46.0 && lon >= -6.0 && lon <= 36.0) {
+    // Mediterranean Sea - MUCH more precise, excluding major land areas
+    if (lat >= 30.5 && lat <= 45.5 && lon >= -5.5 && lon <= 36.0) {
+      // Additional check to exclude major land masses
+      // Exclude Spain (rough approximation)
+      if (lat >= 36.0 && lat <= 43.8 && lon >= -9.3 && lon <= -0.3) {
+        return null;
+      }
+      // Exclude France (rough approximation)  
+      if (lat >= 42.3 && lat <= 51.1 && lon >= -4.8 && lon <= 8.2) {
+        return null;
+      }
+      // Exclude Italy mainland (rough approximation)
+      if (lat >= 36.6 && lat <= 47.1 && lon >= 6.6 && lon <= 18.5) {
+        return null;
+      }
+      // Exclude major Greek mainland
+      if (lat >= 34.8 && lat <= 41.7 && lon >= 19.4 && lon <= 28.2) {
+        return null;
+      }
+      // Exclude Turkey mainland
+      if (lat >= 35.8 && lat <= 42.1 && lon >= 25.7 && lon <= 44.8) {
+        return null;
+      }
       return "Mediterranean Sea";
     }
     
-    // Red Sea
-    if (lat >= 12.0 && lat <= 30.0 && lon >= 32.0 && lon <= 44.0) {
+    // Red Sea - more precise
+    if (lat >= 12.9 && lat <= 28.0 && lon >= 32.3 && lon <= 43.5) {
       return "Red Sea";
     }
     
-    // Persian Gulf
+    // Persian Gulf - more precise
     if (lat >= 24.0 && lat <= 30.5 && lon >= 48.0 && lon <= 56.0) {
       return "Persian Gulf";
     }
     
-    // North Sea
-    if (lat >= 51.0 && lat <= 62.0 && lon >= -4.0 && lon <= 9.0) {
+    // North Sea - more precise
+    if (lat >= 51.5 && lat <= 62.0 && lon >= -3.0 && lon <= 8.5) {
       return "North Sea";
     }
     
-    // Baltic Sea
-    if (lat >= 53.0 && lat <= 66.0 && lon >= 9.0 && lon <= 30.0) {
+    // Baltic Sea - more precise
+    if (lat >= 53.8 && lat <= 65.9 && lon >= 9.0 && lon <= 30.3) {
       return "Baltic Sea";
     }
     
-    // Black Sea
-    if (lat >= 40.0 && lat <= 47.0 && lon >= 27.0 && lon <= 42.0) {
+    // Black Sea - more precise
+    if (lat >= 40.9 && lat <= 46.6 && lon >= 27.4 && lon <= 41.8) {
       return "Black Sea";
     }
     
@@ -410,17 +345,17 @@
       return "Bering Sea";
     }
     
-    // Sea of Japan
+    // Sea of Japan - more precise
     if (lat >= 33.0 && lat <= 52.0 && lon >= 127.0 && lon <= 142.0) {
       return "Sea of Japan";
     }
     
-    // South China Sea
+    // South China Sea - more precise
     if (lat >= 0.0 && lat <= 23.0 && lon >= 99.0 && lon <= 121.0) {
       return "South China Sea";
     }
     
-    // East China Sea
+    // East China Sea - more precise
     if (lat >= 23.0 && lat <= 33.0 && lon >= 117.0 && lon <= 131.0) {
       return "East China Sea";
     }
@@ -435,24 +370,24 @@
       return "Great Australian Bight";
     }
     
-    // === OCEANS (Broader regions) ===
-    // Pacific Ocean - West of Mexico/Central America
-    if (lat >= 5.0 && lat <= 35.0 && lon >= -140.0 && lon <= -105.0) {
+    // === OCEANS (More conservative bounds) ===
+    // Pacific Ocean - West of Americas, more conservative
+    if (lat >= 10.0 && lat <= 60.0 && lon >= -170.0 && lon <= -120.0) {
       return "Pacific Ocean";
     }
     
-    // Atlantic Ocean - East of US/Caribbean
-    if (lat >= 15.0 && lat <= 45.0 && lon >= -80.0 && lon <= -40.0) {
+    // Atlantic Ocean - East of Americas, more conservative 
+    if (lat >= 20.0 && lat <= 70.0 && lon >= -70.0 && lon <= -10.0) {
       return "Atlantic Ocean";
     }
     
-    // Indian Ocean
-    if (lat >= -40.0 && lat <= 30.0 && lon >= 40.0 && lon <= 100.0) {
+    // Indian Ocean - more conservative
+    if (lat >= -50.0 && lat <= 30.0 && lon >= 40.0 && lon <= 110.0) {
       return "Indian Ocean";
     }
     
     // Arctic Ocean
-    if (lat >= 66.0 && lat <= 90.0) {
+    if (lat >= 70.0 && lat <= 90.0) {
       return "Arctic Ocean";
     }
     
