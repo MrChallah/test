@@ -126,16 +126,13 @@
   // Ensure time updates every second regardless of network issues
   setInterval(tick, 1000);
   
-  async function reverseGeocode(lat, lon){
-    // Detect if we're running locally (file:// protocol) and prioritize Nominatim
-    const isLocalFile = window.location.protocol === 'file:';
-    
-    if (isLocalFile) {
-      console.log('Local file detected, using Nominatim as primary geocoder');
+  async function reverseGeocode(lat, lon) {
+    // Skip IP-based geocoding for local files and go straight to hosted services
+    if (location.protocol === 'file:' || location.hostname === '127.0.0.1' || location.hostname === 'localhost') {
       try {
         return await reverseGeocodeWithNominatim(lat, lon);
-      } catch (nominatimError) {
-        console.warn('Nominatim failed, trying Google as fallback:', nominatimError);
+      } catch (error) {
+        console.warn('Nominatim failed for local file, trying Google:', error.message);
         try {
         return await reverseGeocodeWithGoogle(lat, lon);
         } catch (googleError) {
@@ -143,8 +140,8 @@
           try {
             return await reverseGeocodeWithOpenSeaMap(lat, lon);
           } catch (openSeaMapError) {
-            console.warn('OpenSeaMap also failed, using generic waterway designation');
-            return `Waterway (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
+            console.warn('OpenSeaMap also failed, using fallback logic');
+            return getFallbackLocation(lat, lon);
           }
         }
       }
@@ -162,11 +159,56 @@
         try {
           return await reverseGeocodeWithOpenSeaMap(lat, lon);
         } catch (openSeaMapError) {
-          console.warn('OpenSeaMap also failed, using generic waterway designation');
-          return `Waterway (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
+          console.warn('OpenSeaMap also failed, using fallback logic');
+          return getFallbackLocation(lat, lon);
         }
       }
     }
+  }
+  
+  // Smart fallback logic for when all geocoding services fail
+  function getFallbackLocation(lat, lon) {
+    // First priority: Use cached location name if available
+    if (lastLocationName) {
+      console.log('Using cached location name due to all geocoding services failing:', lastLocationName);
+      return lastLocationName;
+    }
+    
+    // Second priority: Try to determine if we're likely in water based on rough coordinates
+    // Only show "Waterway" if we have strong evidence of being in water (major oceans far from land)
+    const isLikelyInWater = isDefinitelyInWater(lat, lon);
+    
+    if (isLikelyInWater) {
+      console.log('Location appears to be in open water, showing waterway designation');
+      return `Waterway (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
+    }
+    
+    // Default: Show location unavailable for connection failures on land
+    console.log('Connection failed and location unclear, showing unavailable status');
+    return `Location unavailable (${lat.toFixed(1)}°, ${lon.toFixed(1)}°)`;
+  }
+  
+  // Conservative water detection - only returns true for locations very likely to be in major water bodies
+  function isDefinitelyInWater(lat, lon) {
+    // Very conservative ranges for major oceans far from coastlines
+    // Pacific Ocean (central areas)
+    if (lat >= -40 && lat <= 40 && lon >= -150 && lon <= -120) return true; // Central Pacific
+    if (lat >= -40 && lat <= 40 && lon >= 140 && lon <= 180) return true; // Western Pacific
+    
+    // Atlantic Ocean (central areas)
+    if (lat >= -40 && lat <= 40 && lon >= -50 && lon <= -10) return true; // Central Atlantic
+    
+    // Indian Ocean (central areas)
+    if (lat >= -40 && lat <= 10 && lon >= 60 && lon <= 100) return true; // Central Indian Ocean
+    
+    // Southern Ocean (very far south)
+    if (lat <= -50) return true; // Deep Southern Ocean
+    
+    // Arctic Ocean (very far north)
+    if (lat >= 75) return true; // Deep Arctic Ocean
+    
+    // Default: assume land or near-coastal (don't assume water)
+    return false;
   }
   
   // OpenSeaMap geocoding service - specialized for water bodies
