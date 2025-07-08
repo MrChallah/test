@@ -345,6 +345,19 @@
           finalState = '';
         }
         
+        // Additional redundancy check for city-states (Singapore, Monaco, Vatican, etc.)
+        if (finalCity && country) {
+          const cityLower = finalCity.toLowerCase();
+          const countryLower = country.toLowerCase();
+          
+          // Special handling for city-states where city equals country
+          if (cityLower === countryLower) {
+            console.log('Detected city-state redundancy:', finalCity, '==', country);
+            // For city-states, show only the city name
+            country = '';
+          }
+        }
+        
         // Build final address string
         const parts = [finalCity, finalState, country].filter(Boolean);
         
@@ -393,6 +406,18 @@
             filteredParts.push(part);
           }
         });
+        
+        // Additional check for city-states in formatted address fallback
+        if (filteredParts.length > 1) {
+          const lastPart = filteredParts[filteredParts.length - 1];
+          const secondLastPart = filteredParts[filteredParts.length - 2];
+          
+          // If last two parts are identical (city-state case), remove the duplicate
+          if (lastPart.toLowerCase() === secondLastPart.toLowerCase()) {
+            console.log('Detected city-state redundancy in formatted address:', secondLastPart, '==', lastPart);
+            filteredParts.pop(); // Remove the duplicate
+          }
+        }
         
         return filteredParts.join(", ");
       }
@@ -530,6 +555,19 @@
             city = state; // Use state as city
             state = '';
           }
+        }
+      }
+      
+      // Additional redundancy check for city-states (Singapore, Monaco, Vatican, etc.)
+      if (city && country) {
+        const cityLower = city.toLowerCase();
+        const countryLower = country.toLowerCase();
+        
+        // Special handling for city-states where city equals country
+        if (cityLower === countryLower) {
+          console.log('Detected city-state redundancy:', city, '==', country);
+          // For city-states, show only the city name
+          country = '';
         }
       }
       
