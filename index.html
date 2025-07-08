@@ -353,8 +353,27 @@
           // Special handling for city-states where city equals country
           if (cityLower === countryLower) {
             console.log('Detected city-state redundancy:', finalCity, '==', country);
-            // For city-states, show only the city name
-            country = '';
+            
+            // For city-states like Singapore, check if we have a more specific area/neighborhood
+            // Look for the most specific location that isn't the country name
+            const specificAreas = citiesToConsider.filter(cityObj => 
+              cityObj.name.toLowerCase() !== countryLower && 
+              cityObj.priority <= 4 // Only consider specific areas, not generic administrative regions
+            );
+            
+            if (specificAreas.length > 0) {
+              // Sort by priority to get the most specific area
+              specificAreas.sort((a, b) => a.priority - b.priority);
+              const specificArea = specificAreas[0];
+              
+              console.log('Found specific area within city-state:', specificArea.name, 'type:', specificArea.type);
+              finalCity = specificArea.name;
+              // Keep country for context (e.g., "Tampines, Singapore")
+              finalState = ''; // Clear state to avoid triple names
+            } else {
+              // No specific area found, show just the city-state name
+              country = '';
+            }
           }
         }
         
@@ -566,8 +585,27 @@
         // Special handling for city-states where city equals country
         if (cityLower === countryLower) {
           console.log('Detected city-state redundancy:', city, '==', country);
-          // For city-states, show only the city name
-          country = '';
+          
+          // For city-states like Singapore, check if we have a more specific area/neighborhood
+          // Look for the most specific location that isn't the country name
+          const specificAreas = potentialCities.filter(cityObj => 
+            cityObj.name.toLowerCase() !== countryLower && 
+            cityObj.priority <= 4 // Only consider specific areas, not generic administrative regions
+          );
+          
+          if (specificAreas.length > 0) {
+            // Sort by priority to get the most specific area
+            specificAreas.sort((a, b) => a.priority - b.priority);
+            const specificArea = specificAreas[0];
+            
+            console.log('Found specific area within city-state:', specificArea.name, 'type:', specificArea.type);
+            city = specificArea.name;
+            // Keep country for context (e.g., "Tampines, Singapore")
+            state = ''; // Clear state to avoid triple names
+          } else {
+            // No specific area found, show just the city-state name
+            country = '';
+          }
         }
       }
       
