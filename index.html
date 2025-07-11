@@ -13,12 +13,6 @@
     text-align: center;
   }
   
-  .location-icon-container {
-    width: 30px;
-    text-align: center;
-    display: inline-block;
-  }
-  
   .weather-icon {
     position: relative;
     display: inline-block;
@@ -78,7 +72,7 @@
   .country-flag {
     width: 20px;
     height: 15px;
-    margin-right: 8px;
+    margin-left: 5px;
     filter: drop-shadow(-1px -1px 0 #000) drop-shadow(1px -1px 0 #000) drop-shadow(-1px 1px 0 #000) drop-shadow(1px 1px 0 #000) drop-shadow(0 0 4px #000);
   }
   
@@ -89,11 +83,17 @@
   .location-row {
     margin-top: -2px;
   }
+  
+  .info-icon {
+    width: 25px;
+    position: relative;
+    display: inline-block;
+  }
   </style></head><body class="text-white">
   
   <div id="info" class="position-absolute top-0 start-0 m-2 d-flex flex-column gap-1 p-3 rounded">
     <div class="d-flex align-items-center fs-5 fw-bold text-shadow text-nowrap location-row">
-      <span class="location-icon-container me-2">
+      <span class="info-icon me-2">
         <i class="fa-solid fa-location-dot icon-text-shadow location-fallback"></i>
         <img id="country-flag" class="country-flag" style="display: none;" alt="Country Flag" />
       </span>
