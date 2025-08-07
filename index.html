@@ -16,6 +16,7 @@
   .weather-icon {
     position: relative;
     display: inline-block;
+    transform: translateY(-2px);
   }
   
   .weather-icon-main {
@@ -65,44 +66,24 @@
     text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000, 2px 2px 0 #000, 0 0 4px #000, 0 0 1px #000, 0 0 12px #000;
   }
   
-  .info-separator {
-    margin: 0 15px;
-    color: rgba(255, 255, 255, 0.5);
+  .location-row {
+    margin-top: -2.4px;
   }
   
   .weather-row {
     margin-top: -4.25px;
   }
-  
-  .country-flag {
-    width: 20px;
-    height: 15px;
-    margin-right: 8px;
-    margin-left: 2px;
-    filter: drop-shadow(-1px -1px 0 #000) drop-shadow(1px -1px 0 #000) drop-shadow(-1px 1px 0 #000) drop-shadow(1px 1px 0 #000) drop-shadow(0 0 4px #000);
-  }
-  
-  .location-fallback {
-    display: inline-block;
-  }
-  
-  .location-row {
-    margin-top: -2px;
-  }
   </style></head><body class="text-white">
   
-  <div id="info" class="position-absolute top-0 start-0 m-2 d-flex align-items-center gap-3 p-3 rounded">
-    <div class="d-flex align-items-center fs-5 fw-bold text-shadow text-nowrap">
-      <i class="fa-regular fa-clock info-icon icon-text-shadow me-2"></i>
-      <span id="time">--:--:--</span>
-    </div>
-    <span class="info-separator">|</span>
+  <div id="info" class="position-absolute top-0 start-0 d-flex flex-column gap-1 rounded" style="padding:8px;">
+    <div class="d-flex align-items-center fs-5 fw-bold text-shadow text-nowrap"><i class="fa-regular fa-clock info-icon icon-text-shadow me-2"></i><span id="time">--:--:--</span></div>
     <div class="d-flex align-items-center fs-5 fw-bold text-shadow text-nowrap location-row">
-      <i class="fa-solid fa-location-dot info-icon icon-text-shadow me-2 location-fallback"></i>
-      <img id="country-flag" class="country-flag" style="display: none;" alt="Country Flag" />
-      <span id="place">Waiting…</span>
+      <span class="info-icon me-2">
+        <img id="country-flag" class="country-flag" style="width: 20px; height: 15px; border-radius: 2px; transform: translateY(-2px); filter: drop-shadow(-1.8px -1.8px 0 #000) drop-shadow(1.8px -1.8px 0 #000) drop-shadow(-1.8px 1.8px 0 #000) drop-shadow(1.8px 1.8px 0 #000) drop-shadow(0 0 6px #000);" alt="Location" />
+        <i id="location-fallback" class="fa-solid fa-location-dot info-icon icon-text-shadow" style="display: none;"></i>
+      </span>
+      <span id="place">Waiting for GPS…</span>
     </div>
-    <span class="info-separator">|</span>
     <div class="d-flex align-items-center fs-5 fw-bold text-shadow text-nowrap weather-row">
       <span class="info-icon me-2">
         <span id="weather-icon" class="weather-icon">
@@ -120,7 +101,7 @@
   const weatherEl = document.getElementById('weather');
   const GOOGLE_GEO_KEY = 'YOUR_KEY';
   
-  let lastKnownLocation = null;
+  let lastKnownGPSLocation = null;
   let gpsSuccessful = false;
   let gpsAttempted = false;
   let consecutiveGPSFailures = 0;
@@ -142,278 +123,6 @@
   const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
   const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
   
-  // Country flag mapping system
-  const countryFlagMap = {
-    'US': 'us.svg', 'United States': 'us.svg', 'USA': 'us.svg',
-    'CA': 'ca.svg', 'Canada': 'ca.svg',
-    'GB': 'gb.svg', 'United Kingdom': 'gb.svg', 'UK': 'gb.svg',
-    'DE': 'de.svg', 'Germany': 'de.svg',
-    'FR': 'fr.svg', 'France': 'fr.svg',
-    'IT': 'it.svg', 'Italy': 'it.svg',
-    'ES': 'es.svg', 'Spain': 'es.svg',
-    'NL': 'nl.svg', 'Netherlands': 'nl.svg',
-    'BE': 'be.svg', 'Belgium': 'be.svg',
-    'CH': 'ch.svg', 'Switzerland': 'ch.svg',
-    'AT': 'at.svg', 'Austria': 'at.svg',
-    'SE': 'se.svg', 'Sweden': 'se.svg',
-    'NO': 'no.svg', 'Norway': 'no.svg',
-    'DK': 'dk.svg', 'Denmark': 'dk.svg',
-    'FI': 'fi.svg', 'Finland': 'fi.svg',
-    'PL': 'pl.svg', 'Poland': 'pl.svg',
-    'CZ': 'cz.svg', 'Czech Republic': 'cz.svg', 'Czechia': 'cz.svg',
-    'HU': 'hu.svg', 'Hungary': 'hu.svg',
-    'RO': 'ro.svg', 'Romania': 'ro.svg',
-    'BG': 'bg.svg', 'Bulgaria': 'bg.svg',
-    'HR': 'hr.svg', 'Croatia': 'hr.svg',
-    'SI': 'si.svg', 'Slovenia': 'si.svg',
-    'SK': 'sk.svg', 'Slovakia': 'sk.svg',
-    'RS': 'rs.svg', 'Serbia': 'rs.svg',
-    'BA': 'ba.svg', 'Bosnia and Herzegovina': 'ba.svg',
-    'MK': 'mk.svg', 'North Macedonia': 'mk.svg', 'Macedonia': 'mk.svg',
-    'AL': 'al.svg', 'Albania': 'al.svg',
-    'ME': 'me.svg', 'Montenegro': 'me.svg',
-    'XK': 'xk.svg', 'Kosovo': 'xk.svg',
-    'GR': 'gr.svg', 'Greece': 'gr.svg',
-    'TR': 'tr.svg', 'Turkey': 'tr.svg',
-    'RU': 'ru.svg', 'Russia': 'ru.svg', 'Russian Federation': 'ru.svg',
-    'UA': 'ua.svg', 'Ukraine': 'ua.svg',
-    'BY': 'by.svg', 'Belarus': 'by.svg',
-    'MD': 'md.svg', 'Moldova': 'md.svg',
-    'LT': 'lt.svg', 'Lithuania': 'lt.svg',
-    'LV': 'lv.svg', 'Latvia': 'lv.svg',
-    'EE': 'ee.svg', 'Estonia': 'ee.svg',
-    'JP': 'jp.svg', 'Japan': 'jp.svg',
-    'CN': 'cn.svg', 'China': 'cn.svg',
-    'KR': 'kr.svg', 'South Korea': 'kr.svg', 'Korea': 'kr.svg',
-    'IN': 'in.svg', 'India': 'in.svg',
-    'AU': 'au.svg', 'Australia': 'au.svg',
-    'NZ': 'nz.svg', 'New Zealand': 'nz.svg',
-    'BR': 'br.svg', 'Brazil': 'br.svg',
-    'AR': 'ar.svg', 'Argentina': 'ar.svg',
-    'CL': 'cl.svg', 'Chile': 'cl.svg',
-    'CO': 'co.svg', 'Colombia': 'co.svg',
-    'MX': 'mx.svg', 'Mexico': 'mx.svg',
-    'PE': 'pe.svg', 'Peru': 'pe.svg',
-    'VE': 've.svg', 'Venezuela': 've.svg',
-    'EC': 'ec.svg', 'Ecuador': 'ec.svg',
-    'UY': 'uy.svg', 'Uruguay': 'uy.svg',
-    'PY': 'py.svg', 'Paraguay': 'py.svg',
-    'BO': 'bo.svg', 'Bolivia': 'bo.svg',
-    'GF': 'gf.svg', 'French Guiana': 'gf.svg',
-    'SR': 'sr.svg', 'Suriname': 'sr.svg',
-    'GY': 'gy.svg', 'Guyana': 'gy.svg',
-    'ZA': 'za.svg', 'South Africa': 'za.svg',
-    'EG': 'eg.svg', 'Egypt': 'eg.svg',
-    'MA': 'ma.svg', 'Morocco': 'ma.svg',
-    'TN': 'tn.svg', 'Tunisia': 'tn.svg',
-    'DZ': 'dz.svg', 'Algeria': 'dz.svg',
-    'LY': 'ly.svg', 'Libya': 'ly.svg',
-    'SD': 'sd.svg', 'Sudan': 'sd.svg',
-    'ET': 'et.svg', 'Ethiopia': 'et.svg',
-    'KE': 'ke.svg', 'Kenya': 'ke.svg',
-    'UG': 'ug.svg', 'Uganda': 'ug.svg',
-    'TZ': 'tz.svg', 'Tanzania': 'tz.svg',
-    'RW': 'rw.svg', 'Rwanda': 'rw.svg',
-    'BI': 'bi.svg', 'Burundi': 'bi.svg',
-    'MW': 'mw.svg', 'Malawi': 'mw.svg',
-    'ZM': 'zm.svg', 'Zambia': 'zm.svg',
-    'ZW': 'zw.svg', 'Zimbabwe': 'zw.svg',
-    'BW': 'bw.svg', 'Botswana': 'bw.svg',
-    'NA': 'na.svg', 'Namibia': 'na.svg',
-    'SZ': 'sz.svg', 'Eswatini': 'sz.svg', 'Swaziland': 'sz.svg',
-    'LS': 'ls.svg', 'Lesotho': 'ls.svg',
-    'MZ': 'mz.svg', 'Mozambique': 'mz.svg',
-    'MG': 'mg.svg', 'Madagascar': 'mg.svg',
-    'MU': 'mu.svg', 'Mauritius': 'mu.svg',
-    'SC': 'sc.svg', 'Seychelles': 'sc.svg',
-    'RE': 're.svg', 'Réunion': 're.svg',
-    'YT': 'yt.svg', 'Mayotte': 'yt.svg',
-    'KM': 'km.svg', 'Comoros': 'km.svg',
-    'DJ': 'dj.svg', 'Djibouti': 'dj.svg',
-    'SO': 'so.svg', 'Somalia': 'so.svg',
-    'ER': 'er.svg', 'Eritrea': 'er.svg',
-    'SS': 'ss.svg', 'South Sudan': 'ss.svg',
-    'CF': 'cf.svg', 'Central African Republic': 'cf.svg',
-    'TD': 'td.svg', 'Chad': 'td.svg',
-    'NE': 'ne.svg', 'Niger': 'ne.svg',
-    'NG': 'ng.svg', 'Nigeria': 'ng.svg',
-    'BF': 'bf.svg', 'Burkina Faso': 'bf.svg',
-    'ML': 'ml.svg', 'Mali': 'ml.svg',
-    'SN': 'sn.svg', 'Senegal': 'sn.svg',
-    'MR': 'mr.svg', 'Mauritania': 'mr.svg',
-    'GM': 'gm.svg', 'Gambia': 'gm.svg',
-    'GW': 'gw.svg', 'Guinea-Bissau': 'gw.svg',
-    'GN': 'gn.svg', 'Guinea': 'gn.svg',
-    'SL': 'sl.svg', 'Sierra Leone': 'sl.svg',
-    'LR': 'lr.svg', 'Liberia': 'lr.svg',
-    'CI': 'ci.svg', 'Ivory Coast': 'ci.svg', 'Côte d\'Ivoire': 'ci.svg',
-    'GH': 'gh.svg', 'Ghana': 'gh.svg',
-    'TG': 'tg.svg', 'Togo': 'tg.svg',
-    'BJ': 'bj.svg', 'Benin': 'bj.svg',
-    'CM': 'cm.svg', 'Cameroon': 'cm.svg',
-    'GQ': 'gq.svg', 'Equatorial Guinea': 'gq.svg',
-    'GA': 'ga.svg', 'Gabon': 'ga.svg',
-    'CG': 'cg.svg', 'Republic of the Congo': 'cg.svg', 'Congo': 'cg.svg',
-    'CD': 'cd.svg', 'Democratic Republic of the Congo': 'cd.svg',
-    'AO': 'ao.svg', 'Angola': 'ao.svg',
-    'ST': 'st.svg', 'São Tomé and Príncipe': 'st.svg',
-    'CV': 'cv.svg', 'Cape Verde': 'cv.svg',
-    'IL': 'il.svg', 'Israel': 'il.svg',
-    'PS': 'ps.svg', 'Palestine': 'ps.svg',
-    'JO': 'jo.svg', 'Jordan': 'jo.svg',
-    'LB': 'lb.svg', 'Lebanon': 'lb.svg',
-    'SY': 'sy.svg', 'Syria': 'sy.svg',
-    'IQ': 'iq.svg', 'Iraq': 'iq.svg',
-    'IR': 'ir.svg', 'Iran': 'ir.svg',
-    'AF': 'af.svg', 'Afghanistan': 'af.svg',
-    'PK': 'pk.svg', 'Pakistan': 'pk.svg',
-    'BD': 'bd.svg', 'Bangladesh': 'bd.svg',
-    'LK': 'lk.svg', 'Sri Lanka': 'lk.svg',
-    'MV': 'mv.svg', 'Maldives': 'mv.svg',
-    'NP': 'np.svg', 'Nepal': 'np.svg',
-    'BT': 'bt.svg', 'Bhutan': 'bt.svg',
-    'MM': 'mm.svg', 'Myanmar': 'mm.svg', 'Burma': 'mm.svg',
-    'TH': 'th.svg', 'Thailand': 'th.svg',
-    'KH': 'kh.svg', 'Cambodia': 'kh.svg',
-    'LA': 'la.svg', 'Laos': 'la.svg',
-    'VN': 'vn.svg', 'Vietnam': 'vn.svg',
-    'MY': 'my.svg', 'Malaysia': 'my.svg',
-    'SG': 'sg.svg', 'Singapore': 'sg.svg',
-    'BN': 'bn.svg', 'Brunei': 'bn.svg',
-    'ID': 'id.svg', 'Indonesia': 'id.svg',
-    'TL': 'tl.svg', 'East Timor': 'tl.svg', 'Timor-Leste': 'tl.svg',
-    'PH': 'ph.svg', 'Philippines': 'ph.svg',
-    'TW': 'tw.svg', 'Taiwan': 'tw.svg',
-    'HK': 'hk.svg', 'Hong Kong': 'hk.svg',
-    'MO': 'mo.svg', 'Macau': 'mo.svg', 'Macao': 'mo.svg',
-    'MN': 'mn.svg', 'Mongolia': 'mn.svg',
-    'KZ': 'kz.svg', 'Kazakhstan': 'kz.svg',
-    'KG': 'kg.svg', 'Kyrgyzstan': 'kg.svg',
-    'TJ': 'tj.svg', 'Tajikistan': 'tj.svg',
-    'UZ': 'uz.svg', 'Uzbekistan': 'uz.svg',
-    'TM': 'tm.svg', 'Turkmenistan': 'tm.svg',
-    'AZ': 'az.svg', 'Azerbaijan': 'az.svg',
-    'AM': 'am.svg', 'Armenia': 'am.svg',
-    'GE': 'ge.svg', 'Georgia': 'ge.svg',
-    'CY': 'cy.svg', 'Cyprus': 'cy.svg',
-    'MT': 'mt.svg', 'Malta': 'mt.svg',
-    'IS': 'is.svg', 'Iceland': 'is.svg',
-    'IE': 'ie.svg', 'Ireland': 'ie.svg',
-    'PT': 'pt.svg', 'Portugal': 'pt.svg',
-    'AD': 'ad.svg', 'Andorra': 'ad.svg',
-    'MC': 'mc.svg', 'Monaco': 'mc.svg',
-    'LI': 'li.svg', 'Liechtenstein': 'li.svg',
-    'LU': 'lu.svg', 'Luxembourg': 'lu.svg',
-    'SM': 'sm.svg', 'San Marino': 'sm.svg',
-    'VA': 'va.svg', 'Vatican City': 'va.svg',
-    'SA': 'sa.svg', 'Saudi Arabia': 'sa.svg',
-    'AE': 'ae.svg', 'United Arab Emirates': 'ae.svg', 'UAE': 'ae.svg',
-    'QA': 'qa.svg', 'Qatar': 'qa.svg',
-    'BH': 'bh.svg', 'Bahrain': 'bh.svg',
-    'KW': 'kw.svg', 'Kuwait': 'kw.svg',
-    'OM': 'om.svg', 'Oman': 'om.svg',
-    'YE': 'ye.svg', 'Yemen': 'ye.svg'
-  };
-  
-  // Global variables for country information
-  window.currentCountryName = null;
-  window.currentCountryCode = null;
-  
-  // Function to update country flag
-  function updateCountryFlag() {
-    const flagElement = document.getElementById('country-flag');
-    const fallbackElement = document.querySelector('.location-fallback');
-    
-    if (!flagElement || !fallbackElement) {
-      console.error('Flag elements not found');
-      return;
-    }
-    
-    console.log('🏁 Updating country flag...');
-    console.log('Current country name:', window.currentCountryName);
-    console.log('Current country code:', window.currentCountryCode);
-    
-    let flagFileName = null;
-    let flagSource = null;
-    
-    // Try country code first (more reliable)
-    if (window.currentCountryCode && countryFlagMap[window.currentCountryCode]) {
-      flagFileName = countryFlagMap[window.currentCountryCode];
-      flagSource = `country code: ${window.currentCountryCode}`;
-    }
-    // Try country name
-    else if (window.currentCountryName && countryFlagMap[window.currentCountryName]) {
-      flagFileName = countryFlagMap[window.currentCountryName];
-      flagSource = `country name: ${window.currentCountryName}`;
-    }
-    // Try name variations
-    else if (window.currentCountryName) {
-      const nameVariations = [
-        window.currentCountryName.replace(/^The\s+/i, ''), // Remove "The " prefix
-        window.currentCountryName.replace(/\s+Republic$/i, ''), // Remove "Republic" suffix
-        window.currentCountryName.replace(/\s+Federation$/i, ''), // Remove "Federation" suffix
-        window.currentCountryName.split(',')[0].trim() // Take part before comma
-      ];
-      
-      for (const variation of nameVariations) {
-        if (countryFlagMap[variation]) {
-          flagFileName = countryFlagMap[variation];
-          flagSource = `name variation: ${variation}`;
-          break;
-        }
-      }
-    }
-    
-    if (flagFileName) {
-      console.log('🎯 Found flag file:', flagFileName, 'from', flagSource);
-      
-      const flagUrl = `https://raw.githubusercontent.com/MrChallah/MrChallah.github.io/main/4x3/${flagFileName}`;
-      console.log('🌐 Loading flag from:', flagUrl);
-      
-      // Test if URL is accessible
-      fetch(flagUrl, { method: 'HEAD' })
-        .then(response => {
-          console.log('🌐 Flag URL test response:', response.status);
-          if (response.ok) {
-            flagElement.src = flagUrl;
-            flagElement.style.display = 'inline-block';
-            fallbackElement.style.display = 'none';
-            console.log('✅ Flag loaded successfully');
-            
-            flagElement.onerror = function() {
-              console.error('❌ Flag failed to load after successful HEAD request');
-              flagElement.style.display = 'none';
-              fallbackElement.style.display = 'inline-block';
-            };
-          } else {
-            console.warn('⚠️ Flag URL not accessible:', response.status);
-            flagElement.style.display = 'none';
-            fallbackElement.style.display = 'inline-block';
-          }
-        })
-        .catch(error => {
-          console.error('❌ Flag URL test failed:', error);
-          flagElement.style.display = 'none';
-          fallbackElement.style.display = 'inline-block';
-        });
-    } else {
-      console.warn('⚠️ No flag found for country:', window.currentCountryName, '/', window.currentCountryCode);
-      flagElement.style.display = 'none';
-      fallbackElement.style.display = 'inline-block';
-    }
-  }
-  
-  // Function to manually test flag loading
-  function testFlag(countryName, countryCode) {
-    console.log('🧪 Testing flag for:', countryName, '/', countryCode);
-    window.currentCountryName = countryName;
-    window.currentCountryCode = countryCode;
-    updateCountryFlag();
-  }
-  
-  // Make test function globally available
-  window.testFlag = testFlag;
-  
   function tick(){
     const now = new Date();
     const dateString = now.toLocaleDateString('en-GB', { year: 'numeric', month: '2-digit', day: '2-digit' });
@@ -425,18 +134,70 @@
   // Ensure time updates every second regardless of network issues
   setInterval(tick, 1000);
   
+  // Enhanced fetch with retry logic
+  async function fetchWithRetry(url, options = {}, retryCount = 0) {
+    let timeoutId; // Move declaration to function scope
+    try {
+      // Create fresh AbortController for each attempt
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => {
+        controller.abort();
+      }, 5000); // Reduced to 5 seconds for better responsiveness
+      
+      const response = await fetch(url, {
+        ...options,
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      }
+      
+      // Reset retry attempts on success
+      retryAttempts = 0;
+      hasConnectionIssues = false;
+      
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId); // Ensure timeout is cleared on error too
+      console.warn(`Fetch attempt ${retryCount + 1} failed:`, error.message);
+      
+      // Better error categorization
+      const isTimeoutError = error.name === 'AbortError';
+      const isNetworkError = error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION');
+      const isOffline = !navigator.onLine;
+      
+      if (retryCount < maxRetryAttempts && (isTimeoutError || isNetworkError || isOffline)) {
+        hasConnectionIssues = true;
+        const delay = Math.min(1000 * Math.pow(2, retryCount), 8000); // Exponential backoff, max 8 seconds
+        console.log(`Retrying in ${delay}ms...`);
+        
+        return new Promise(resolve => {
+          const timeoutId = setTimeout(async () => {
+            try {
+              const result = await fetchWithRetry(url, options, retryCount + 1);
+              resolve(result);
+            } catch (err) {
+              resolve(Promise.reject(err));
+            }
+          }, delay);
+          retryTimeouts.push(timeoutId);
+        });
+      }
+      
+      throw error;
+    }
+  }
+  
   async function reverseGeocode(lat, lon){
     // Detect if we're running locally (file:// protocol) and prioritize Nominatim
     const isLocalFile = window.location.protocol === 'file:';
     
     if (isLocalFile) {
       console.log('Local file detected, using Nominatim as primary geocoder');
-      try {
         return await reverseGeocodeWithNominatim(lat, lon);
-      } catch (nominatimError) {
-        console.warn('Nominatim failed, trying Google as fallback:', nominatimError);
-        return await reverseGeocodeWithGoogle(lat, lon);
-      }
     }
     
     // Try Google first for hosted environments
@@ -448,8 +209,90 @@
     }
   }
   
+  // Helper function to clean administrative terms from city names
+  function cleanCityName(cityName) {
+    if (!cityName) return cityName;
+    
+    // Remove common administrative terms that make city names unnecessarily long
+    const administrativeTerms = [
+      'Municipal Unit',
+      'Municipality',
+      'City of',
+      'Town of',
+      'Village of',
+      'District of',
+      'Region of',
+      'Province of',
+      'County of',
+      'Borough of',
+      'Metropolitan Area',
+      'Urban Area',
+      'Administrative Region',
+      'Special Administrative Region',
+      'Autonomous Region',
+      'Federal District',
+      'Capital District',
+      'Metropolitan District'
+    ];
+    
+    let cleanedName = cityName;
+    for (const term of administrativeTerms) {
+      // Case insensitive replacement
+      const regex = new RegExp(`\\b${term}\\b`, 'gi');
+      cleanedName = cleanedName.replace(regex, '').trim();
+    }
+    
+    // Clean up any double spaces that might result
+    cleanedName = cleanedName.replace(/\s+/g, ' ');
+    
+    console.log('City name cleaned:', cityName, '->', cleanedName);
+    return cleanedName;
+  }
+  
+  // Helper function to filter location parts based on word count rules
+  function filterLocationByWordCount(city, state, country) {
+    // Clean administrative terms from city name first
+    const cleanedCity = cleanCityName(city);
+    
+    // Count words in each component (split by spaces and filter out empty strings)
+    const cityWords = cleanedCity ? cleanedCity.split(/\s+/).filter(word => word.length > 0).length : 0;
+    const stateWords = state ? state.split(/\s+/).filter(word => word.length > 0).length : 0;
+    const countryWords = country ? country.split(/\s+/).filter(word => word.length > 0).length : 0;
+    
+    console.log('Word count analysis:', {
+      city: city, cleanedCity: cleanedCity, cityWords: cityWords,
+      state: state, stateWords: stateWords, 
+      country: country, countryWords: countryWords
+    });
+    
+    // Apply the filtering rules:
+    // Hide state if:
+    // 1. City has exactly 2 words AND state has 2+ words AND country has 2+ words, OR
+    // 2. City has 3+ words (regardless of other word counts)
+    
+    let filteredState = state;
+    
+    if (cleanedCity && state && country) {
+      if (cityWords >= 3) {
+        console.log('Hiding state because city has 3+ words:', cityWords);
+        filteredState = '';
+      } else if (cityWords === 2 && stateWords >= 2 && countryWords >= 2) {
+        console.log('Hiding state due to word count rule: city=2 words, state>=2 words, country>=2 words');
+        filteredState = '';
+      } else {
+        console.log('Keeping state - conditions not met for hiding');
+      }
+    }
+    
+    // Build final parts array with filtered state, using cleaned city name
+    const parts = [cleanedCity, filteredState, country].filter(Boolean);
+    console.log('Final location parts after word count filtering:', parts);
+    
+    return parts.join(", ");
+  }
+  
   async function reverseGeocodeWithGoogle(lat, lon) {
-      const res = await fetchWithRetry(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${GOOGLE_GEO_KEY}&language=en&result_type=locality|administrative_area_level_2|administrative_area_level_1|country`);
+    const res = await fetchWithRetry(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${lat},${lon}&key=${GOOGLE_GEO_KEY}&language=en&result_type=locality|administrative_area_level_2|administrative_area_level_1|country`);
       const data = await res.json();
       
       if (data.status === 'OK' && data.results.length > 0) {
@@ -505,22 +348,6 @@
         
         // Store Japan status globally for weather icon selection
         window.isLocationInJapan = isJapan;
-        
-        // Store country information globally for flag system
-        window.currentCountryName = country;
-        // Try to find country code from components
-        window.currentCountryCode = null;
-        for (let resultIndex = 0; resultIndex < Math.min(data.results.length, 3); resultIndex++) {
-          const result = data.results[resultIndex];
-          const components = result.address_components;
-          for (const component of components) {
-            if (component.types.includes('country')) {
-              window.currentCountryCode = component.short_name;
-              break;
-            }
-          }
-          if (window.currentCountryCode) break;
-        }
         
         // Deduplicate cities while preserving the most specific ones
         const uniqueCities = [];
@@ -640,11 +467,28 @@
           }
         }
         
-        // Build final address string
-        const parts = [finalCity, finalState, country].filter(Boolean);
+        // Extract country code for flag display before filtering
+        let countryCode = null;
+        if (data.results && data.results.length > 0) {
+          for (const result of data.results) {
+            const countryComponent = result.address_components.find(comp => 
+              comp.types.includes('country')
+            );
+            if (countryComponent) {
+              countryCode = countryComponent.short_name;
+              break;
+            }
+          }
+        }
         
-        console.log('Google final location parts (most specific):', parts);
-        return parts.join(", ");
+        // Store country info for flag display
+        window.currentCountryName = country;
+        window.currentCountryCode = countryCode;
+        
+        console.log('Google geocoding - before word count filtering:', finalCity, finalState, country);
+        
+        // Apply word count filtering rules
+        return filterLocationByWordCount(finalCity, finalState, country);
       }
       
       // Check for API quota/permission issues
@@ -701,25 +545,29 @@
           }
         }
         
+        // For fallback formatted address, apply word count filtering if we have 3 parts (city, state, country)
+        if (filteredParts.length === 3) {
+          console.log('Google fallback - applying word count filtering to formatted address parts:', filteredParts);
+          return filterLocationByWordCount(filteredParts[0], filteredParts[1], filteredParts[2]);
+        }
+        
         return filteredParts.join(", ");
       }
       
       throw new Error('No results from Google Geocoding');
   }
-      
+  
   async function reverseGeocodeWithNominatim(lat, lon) {
-      const res = await fetchWithRetry(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en&addressdetails=1&extratags=1`);
+    const res = await fetchWithRetry(`https://nominatim.openstreetmap.org/reverse?lat=${lat}&lon=${lon}&format=json&accept-language=en&addressdetails=1&extratags=1`);
       const geo = await res.json();
       const addr = geo.address;
       
+      console.log('Nominatim raw response:', geo);
       console.log('Nominatim address components:', addr);
+      console.log('Coordinates being used:', lat, lon);
       
       // Check if Japan in Nominatim response
       window.isLocationInJapan = addr.country_code === 'jp' || addr.country === 'Japan' || addr.country === '日本';
-      
-      // Store country information globally for flag system
-      window.currentCountryName = addr.country || '';
-      window.currentCountryCode = addr.country_code ? addr.country_code.toUpperCase() : null;
       
       // Enhanced Nominatim city name selection prioritizing specific locations
       let city = '';
@@ -790,16 +638,49 @@
         return !isDetailedDistrict;
       });
       
+      // Special handling for Austin area - prioritize Austin over Houston
+      // Check if we're in the Austin area (roughly 30.2672°N, -97.7431°W ± 0.5 degrees)
+      const isAustinArea = lat >= 29.8 && lat <= 30.8 && lon >= -98.2 && lon <= -97.2;
+      if (isAustinArea) {
+        console.log('Detected Austin area, prioritizing Austin over Houston');
+        // Remove Houston from the list if it exists
+        const filteredForAustin = filteredCities.filter(cityObj => 
+          !cityObj.name.toLowerCase().includes('houston')
+        );
+        if (filteredForAustin.length > 0) {
+          console.log('Filtered out Houston, remaining cities:', filteredForAustin.map(c => c.name));
+          // Use the filtered list instead
+          filteredCities.length = 0;
+          filteredCities.push(...filteredForAustin);
+        }
+      }
+      
       // Choose the most specific city name (lowest priority number = most specific)
+      let bestCity = null; // Declare bestCity at function scope
+      
       if (filteredCities.length > 0) {
-        // Sort by priority (lower number = higher priority = more specific)
-        filteredCities.sort((a, b) => a.priority - b.priority);
-        const bestCity = filteredCities[0];
-        city = bestCity.name;
-        console.log('Selected most specific Nominatim city:', city, 'from type:', bestCity.type, 'priority:', bestCity.priority);
+        // Special handling for Austin - if Austin is in the list, prioritize it
+        const austinCity = filteredCities.find(cityObj => 
+          cityObj.name.toLowerCase().includes('austin')
+        );
+        
+        if (austinCity) {
+          console.log('Found Austin in potential cities, prioritizing it');
+          city = austinCity.name;
+          bestCity = austinCity; // Set bestCity for later use
+          console.log('Selected Austin:', city, 'from type:', austinCity.type, 'priority:', austinCity.priority);
+        } else {
+          // Sort by priority (lower number = higher priority = more specific)
+          filteredCities.sort((a, b) => a.priority - b.priority);
+          bestCity = filteredCities[0];
+          city = bestCity.name;
+          console.log('Selected most specific Nominatim city:', city, 'from type:', bestCity.type, 'priority:', bestCity.priority);
+        }
+        
+        console.log('All filtered cities considered:', filteredCities.map(c => `${c.name} (${c.type}, priority: ${c.priority})`));
         
         // Don't use state as city if we found a real city
-        if (bestCity.type === 'state_as_city') {
+        if (bestCity && bestCity.type === 'state_as_city') {
           state = ''; // Don't duplicate state
         } else {
           // Set state normally if we found a real city
@@ -810,7 +691,7 @@
       } else if (potentialCities.length > 0) {
         // Use unfiltered if filtered list is empty
         potentialCities.sort((a, b) => a.priority - b.priority);
-        const bestCity = potentialCities[0];
+        bestCity = potentialCities[0];
         city = bestCity.name.replace(/^Capital City of /, '');
         console.log('Selected Nominatim city (unfiltered):', city, 'from type:', bestCity.type);
         
@@ -869,27 +750,32 @@
             city = specificArea.name;
             // Keep country for context (e.g., "Tampines, Singapore")
             state = ''; // Clear state to avoid triple names
-      } else {
+          } else {
             // No specific area found, show just the city-state name
             country = '';
+          }
         }
       }
-    }
-    
-    // Filter out Israeli districts before assembling final location
-    if (country === 'Israel' && state && state.toLowerCase().includes('district')) {
-      state = '';
-    }
-    
-    const parts = [city, state, country].filter(Boolean);
-      console.log('Nominatim final parts (most specific):', parts);
-    return parts.join(", ");
+      
+      // Filter out Israeli districts before assembling final location
+      if (country === 'Israel' && state && state.toLowerCase().includes('district')) {
+        state = '';
+      }
+      
+      // Store country info for flag display before filtering
+      window.currentCountryName = country;
+      window.currentCountryCode = addr.country_code ? addr.country_code.toUpperCase() : null;
+      
+      console.log('Nominatim geocoding - before word count filtering:', city, state, country);
+      
+      // Apply word count filtering rules
+      return filterLocationByWordCount(city, state, country);
   }
   
   // Google Weather condition mapping for Open-Meteo weather codes
   const googleWeatherCodes = {
     0: { condition: 'CLEAR', description: 'Clear' },
-    1: { condition: 'MOSTLY_CLEAR', description: 'Mostly Clear' },
+    1: { condition: 'MOSTLY_CLEAR', description: 'Few Clouds' },
     2: { condition: 'PARTLY_CLOUDY', description: 'Few Clouds' },
     3: { condition: 'MOSTLY_CLOUDY', description: 'Cloudy' },
     45: { condition: 'FOG', description: 'Fog' },
@@ -1041,62 +927,280 @@
     return lat > 0 ? tempThresholds.tropical : tempThresholds.southTropical;
   }
   
-  // Enhanced fetch with retry logic
-  async function fetchWithRetry(url, options = {}, retryCount = 0) {
-    let timeoutId; // Move declaration to function scope
-    try {
-      // Create fresh AbortController for each attempt
-      const controller = new AbortController();
-      timeoutId = setTimeout(() => {
-        controller.abort();
-      }, 5000); // Reduced to 5 seconds for better responsiveness
+  // Country flag system - maps country names and codes to flag filenames
+  const countryFlagMap = {
+    // Country codes (ISO 3166-1 alpha-2) - preferred format
+    'US': 'us.svg', 'CA': 'ca.svg', 'GB': 'gb.svg', 'DE': 'de.svg', 'FR': 'fr.svg',
+    'IT': 'it.svg', 'ES': 'es.svg', 'PT': 'pt.svg', 'NL': 'nl.svg', 'BE': 'be.svg',
+    'CH': 'ch.svg', 'AT': 'at.svg', 'SE': 'se.svg', 'NO': 'no.svg', 'DK': 'dk.svg',
+    'FI': 'fi.svg', 'IS': 'is.svg', 'IE': 'ie.svg', 'LU': 'lu.svg', 'MC': 'mc.svg',
+    'AD': 'ad.svg', 'SM': 'sm.svg', 'VA': 'va.svg', 'MT': 'mt.svg', 'CY': 'cy.svg',
+    'GR': 'gr.svg', 'BG': 'bg.svg', 'RO': 'ro.svg', 'HU': 'hu.svg', 'CZ': 'cz.svg',
+    'SK': 'sk.svg', 'PL': 'pl.svg', 'LT': 'lt.svg', 'LV': 'lv.svg', 'EE': 'ee.svg',
+    'RU': 'ru.svg', 'BY': 'by.svg', 'UA': 'ua.svg', 'MD': 'md.svg', 'RS': 'rs.svg',
+    'ME': 'me.svg', 'BA': 'ba.svg', 'HR': 'hr.svg', 'SI': 'si.svg', 'MK': 'mk.svg',
+    'AL': 'al.svg', 'XK': 'xk.svg', 'JP': 'jp.svg', 'KR': 'kr.svg', 'CN': 'cn.svg',
+    'TW': 'tw.svg', 'HK': 'hk.svg', 'MO': 'mo.svg', 'SG': 'sg.svg', 'MY': 'my.svg',
+    'TH': 'th.svg', 'VN': 'vn.svg', 'PH': 'ph.svg', 'ID': 'id.svg', 'BN': 'bn.svg',
+    'IN': 'in.svg', 'PK': 'pk.svg', 'BD': 'bd.svg', 'LK': 'lk.svg', 'MV': 'mv.svg',
+    'NP': 'np.svg', 'BT': 'bt.svg', 'MM': 'mm.svg', 'KH': 'kh.svg', 'LA': 'la.svg',
+    'MN': 'mn.svg', 'KZ': 'kz.svg', 'KG': 'kg.svg', 'TJ': 'tj.svg', 'UZ': 'uz.svg',
+    'TM': 'tm.svg', 'AF': 'af.svg', 'IR': 'ir.svg', 'IQ': 'iq.svg', 'SY': 'sy.svg',
+    'LB': 'lb.svg', 'JO': 'jo.svg', 'PS': 'ps.svg', 'IL': 'il.svg', 'TR': 'tr.svg',
+    'AM': 'am.svg', 'AZ': 'az.svg', 'GE': 'ge.svg', 'SA': 'sa.svg', 'AE': 'ae.svg',
+    'QA': 'qa.svg', 'KW': 'kw.svg', 'BH': 'bh.svg', 'OM': 'om.svg', 'YE': 'ye.svg',
+    'EG': 'eg.svg', 'LY': 'ly.svg', 'TN': 'tn.svg', 'DZ': 'dz.svg', 'MA': 'ma.svg',
+    'SD': 'sd.svg', 'SS': 'ss.svg', 'ET': 'et.svg', 'ER': 'er.svg', 'DJ': 'dj.svg',
+    'SO': 'so.svg', 'KE': 'ke.svg', 'UG': 'ug.svg', 'TZ': 'tz.svg', 'RW': 'rw.svg',
+    'BI': 'bi.svg', 'MG': 'mg.svg', 'MU': 'mu.svg', 'SC': 'sc.svg', 'KM': 'km.svg',
+    'ZA': 'za.svg', 'ZW': 'zw.svg', 'BW': 'bw.svg', 'NA': 'na.svg', 'SZ': 'sz.svg',
+    'LS': 'ls.svg', 'MZ': 'mz.svg', 'MW': 'mw.svg', 'ZM': 'zm.svg', 'AO': 'ao.svg',
+    'CD': 'cd.svg', 'CG': 'cg.svg', 'CF': 'cf.svg', 'TD': 'td.svg', 'CM': 'cm.svg',
+    'GQ': 'gq.svg', 'GA': 'ga.svg', 'ST': 'st.svg', 'NG': 'ng.svg', 'BJ': 'bj.svg',
+    'TG': 'tg.svg', 'GH': 'gh.svg', 'CI': 'ci.svg', 'LR': 'lr.svg', 'SL': 'sl.svg',
+    'GN': 'gn.svg', 'GW': 'gw.svg', 'SN': 'sn.svg', 'GM': 'gm.svg', 'ML': 'ml.svg',
+    'BF': 'bf.svg', 'NE': 'ne.svg', 'MR': 'mr.svg', 'AU': 'au.svg', 'NZ': 'nz.svg',
+    'PG': 'pg.svg', 'FJ': 'fj.svg', 'SB': 'sb.svg', 'VU': 'vu.svg', 'NC': 'nc.svg',
+    'PF': 'pf.svg', 'WS': 'ws.svg', 'TO': 'to.svg', 'TV': 'tv.svg', 'KI': 'ki.svg',
+    'NR': 'nr.svg', 'PW': 'pw.svg', 'FM': 'fm.svg', 'MH': 'mh.svg', 'MX': 'mx.svg',
+    'GT': 'gt.svg', 'BZ': 'bz.svg', 'SV': 'sv.svg', 'HN': 'hn.svg', 'NI': 'ni.svg',
+    'CR': 'cr.svg', 'PA': 'pa.svg', 'CU': 'cu.svg', 'JM': 'jm.svg', 'HT': 'ht.svg',
+    'DO': 'do.svg', 'PR': 'pr.svg', 'TT': 'tt.svg', 'BB': 'bb.svg', 'LC': 'lc.svg',
+    'VC': 'vc.svg', 'GD': 'gd.svg', 'AG': 'ag.svg', 'DM': 'dm.svg', 'KN': 'kn.svg',
+    'BS': 'bs.svg', 'VE': 've.svg', 'GY': 'gy.svg', 'SR': 'sr.svg', 'BR': 'br.svg',
+    'CO': 'co.svg', 'EC': 'ec.svg', 'PE': 'pe.svg', 'BO': 'bo.svg', 'PY': 'py.svg',
+    'AR': 'ar.svg', 'UY': 'uy.svg', 'CL': 'cl.svg', 'FK': 'fk.svg', 'GS': 'gs.svg',
+    // Country names (fallback)
+    'United States': 'us.svg', 'Canada': 'ca.svg', 'United Kingdom': 'gb.svg',
+    'Germany': 'de.svg', 'France': 'fr.svg', 'Italy': 'it.svg', 'Spain': 'es.svg',
+    'Portugal': 'pt.svg', 'Netherlands': 'nl.svg', 'Belgium': 'be.svg',
+    'Switzerland': 'ch.svg', 'Austria': 'at.svg', 'Sweden': 'se.svg', 'Norway': 'no.svg',
+    'Denmark': 'dk.svg', 'Finland': 'fi.svg', 'Iceland': 'is.svg', 'Ireland': 'ie.svg',
+    'Japan': 'jp.svg', 'South Korea': 'kr.svg', 'China': 'cn.svg', 'Taiwan': 'tw.svg',
+    'Hong Kong': 'hk.svg', 'Singapore': 'sg.svg', 'Malaysia': 'my.svg', 'Thailand': 'th.svg',
+    'Vietnam': 'vn.svg', 'Philippines': 'ph.svg', 'Indonesia': 'id.svg', 'India': 'in.svg',
+    'Pakistan': 'pk.svg', 'Bangladesh': 'bd.svg', 'Sri Lanka': 'lk.svg', 'Nepal': 'np.svg',
+    'Australia': 'au.svg', 'New Zealand': 'nz.svg', 'Mexico': 'mx.svg', 'Brazil': 'br.svg',
+    'Argentina': 'ar.svg', 'Chile': 'cl.svg', 'Colombia': 'co.svg', 'Peru': 'pe.svg',
+    'Venezuela': 've.svg', 'Ecuador': 'ec.svg', 'Uruguay': 'uy.svg', 'Paraguay': 'py.svg',
+    'Bolivia': 'bo.svg', 'Israel': 'il.svg', 'Turkey': 'tr.svg', 'Russia': 'ru.svg',
+    'Ukraine': 'ua.svg', 'Poland': 'pl.svg', 'Czech Republic': 'cz.svg', 'Hungary': 'hu.svg',
+    'Romania': 'ro.svg', 'Bulgaria': 'bg.svg', 'Greece': 'gr.svg', 'Croatia': 'hr.svg',
+    'Serbia': 'rs.svg', 'Bosnia and Herzegovina': 'ba.svg', 'Montenegro': 'me.svg',
+    'Slovenia': 'si.svg', 'Slovakia': 'sk.svg', 'Estonia': 'ee.svg', 'Latvia': 'lv.svg',
+    'Lithuania': 'lt.svg', 'Belarus': 'by.svg', 'Moldova': 'md.svg', 'Albania': 'al.svg',
+    'North Macedonia': 'mk.svg', 'Kosovo': 'xk.svg', 'Cyprus': 'cy.svg', 'Malta': 'mt.svg',
+    'Luxembourg': 'lu.svg', 'Monaco': 'mc.svg', 'San Marino': 'sm.svg', 'Vatican City': 'va.svg',
+    'Andorra': 'ad.svg', 'South Africa': 'za.svg', 'Egypt': 'eg.svg', 'Morocco': 'ma.svg',
+    'Nigeria': 'ng.svg', 'Kenya': 'ke.svg', 'Ghana': 'gh.svg', 'Ethiopia': 'et.svg',
+    'Tanzania': 'tz.svg', 'Uganda': 'ug.svg', 'Madagascar': 'mg.svg', 'Cameroon': 'cm.svg',
+    'Saudi Arabia': 'sa.svg', 'United Arab Emirates': 'ae.svg', 'Qatar': 'qa.svg',
+    'Kuwait': 'kw.svg', 'Bahrain': 'bh.svg', 'Oman': 'om.svg', 'Yemen': 'ye.svg',
+    'Jordan': 'jo.svg', 'Lebanon': 'lb.svg', 'Syria': 'sy.svg', 'Iraq': 'iq.svg',
+    'Iran': 'ir.svg', 'Afghanistan': 'af.svg', 'Kazakhstan': 'kz.svg', 'Uzbekistan': 'uz.svg',
+    'Turkmenistan': 'tm.svg', 'Kyrgyzstan': 'kg.svg', 'Tajikistan': 'tj.svg',
+    'Mongolia': 'mn.svg', 'Myanmar': 'mm.svg', 'Cambodia': 'kh.svg', 'Laos': 'la.svg'
+  };
+  
+  // Function to get country flag icon URLs
+  function getCountryFlagIcon(countryName, countryCode) {
+    // Repository base URL for 4x3 flag icons
+    const repoBaseUrl = 'https://raw.githubusercontent.com/MrChallah/MrChallah.github.io/main/4x3/';
+    
+    // Try country code first (more reliable)
+    let flagFile = null;
+    
+    if (countryCode) {
+      const codeUpper = countryCode.toUpperCase();
+      flagFile = countryFlagMap[codeUpper];
+      console.log('Flag lookup by country code:', codeUpper, '->', flagFile);
+    }
+    
+    // Fallback to country name
+    if (!flagFile && countryName) {
+      flagFile = countryFlagMap[countryName];
+      console.log('Flag lookup by country name:', countryName, '->', flagFile);
+    }
+    
+    // Additional fallback for common country name variations
+    if (!flagFile && countryName) {
+      const nameVariations = {
+        'United States of America': 'us.svg',
+        'USA': 'us.svg',
+        'U.S.A.': 'us.svg',
+        'America': 'us.svg',
+        'Great Britain': 'gb.svg',
+        'UK': 'gb.svg',
+        'U.K.': 'gb.svg',
+        'England': 'gb.svg',
+        'Scotland': 'gb.svg',
+        'Wales': 'gb.svg',
+        'Northern Ireland': 'gb.svg',
+        'South Korea': 'kr.svg',
+        'Republic of Korea': 'kr.svg',
+        'North Korea': 'kp.svg',
+        'Czech Republic': 'cz.svg',
+        'Czechia': 'cz.svg',
+        'Vatican': 'va.svg',
+        'Holy See': 'va.svg',
+        'The Vatican': 'va.svg',
+        'Republic of China': 'tw.svg',
+        'Chinese Taipei': 'tw.svg',
+        'Hong Kong SAR': 'hk.svg',
+        'Macao SAR': 'mo.svg',
+        'Macau': 'mo.svg',
+        'Democratic Republic of the Congo': 'cd.svg',
+        'DR Congo': 'cd.svg',
+        'Republic of the Congo': 'cg.svg',
+        'Congo': 'cg.svg',
+        'Ivory Coast': 'ci.svg',
+        'Côte d\'Ivoire': 'ci.svg'
+      };
       
-      const response = await fetch(url, {
-        ...options,
-        signal: controller.signal
-      });
-      
-      clearTimeout(timeoutId);
-      
-      if (!response.ok) {
-        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+      flagFile = nameVariations[countryName];
+      if (flagFile) {
+        console.log('Flag lookup by name variation:', countryName, '->', flagFile);
       }
-      
-      // Reset retry attempts on success
-      retryAttempts = 0;
-      hasConnectionIssues = false;
-      
-      return response;
-    } catch (error) {
-      clearTimeout(timeoutId); // Ensure timeout is cleared on error too
-      console.warn(`Fetch attempt ${retryCount + 1} failed:`, error.message);
-      
-      // Better error categorization
-      const isTimeoutError = error.name === 'AbortError';
-      const isNetworkError = error.name === 'TypeError' || error.message.includes('Failed to fetch') || error.message.includes('ERR_CONNECTION');
-      const isOffline = !navigator.onLine;
-      
-      if (retryCount < maxRetryAttempts && (isTimeoutError || isNetworkError || isOffline)) {
-        hasConnectionIssues = true;
-        const delay = Math.min(1000 * Math.pow(2, retryCount), 8000); // Exponential backoff, max 8 seconds
-        console.log(`Retrying in ${delay}ms...`);
-        
-        return new Promise(resolve => {
-          const timeoutId = setTimeout(async () => {
-            try {
-              const result = await fetchWithRetry(url, options, retryCount + 1);
-              resolve(result);
-            } catch (err) {
-              resolve(Promise.reject(err));
-            }
-          }, delay);
-          retryTimeouts.push(timeoutId);
-        });
-      }
-      
-      throw error;
+    }
+    
+    if (flagFile) {
+      return {
+        primary: repoBaseUrl + flagFile,
+        hasFlag: true,
+        country: countryName || countryCode
+      };
+    } else {
+      console.log('No flag found for:', countryName, countryCode);
+      return {
+        primary: null,
+        hasFlag: false,
+        country: countryName || countryCode
+      };
     }
   }
+  
+  // Function to update country flag display
+  function updateCountryFlag(countryName, countryCode) {
+    const flagImg = document.getElementById('country-flag');
+    const fallbackIcon = document.getElementById('location-fallback');
+    
+    if (!flagImg || !fallbackIcon) {
+      console.log('Flag elements not found:', { flagImg: !!flagImg, fallbackIcon: !!fallbackIcon });
+      return;
+    }
+    
+    const flagInfo = getCountryFlagIcon(countryName, countryCode);
+    
+    if (flagInfo.hasFlag) {
+      // Hide fallback icon and show flag
+      fallbackIcon.style.display = 'none';
+      flagImg.style.display = 'inline-block';
+      
+      // Set up error handler for flag loading
+      flagImg.onerror = function() {
+        console.log('Flag icon failed to load, showing fallback location icon');
+        console.log('Failed flag URL:', flagInfo.primary);
+        console.log('Error details:', this.src, this.complete, this.naturalWidth, this.naturalHeight);
+        flagImg.style.display = 'none';
+        fallbackIcon.style.display = 'inline-block';
+      };
+      
+      // Set up success handler
+      flagImg.onload = function() {
+        console.log('Flag icon loaded successfully:', flagInfo.primary);
+        console.log('Image dimensions:', this.naturalWidth, 'x', this.naturalHeight);
+        flagImg.style.display = 'inline-block';
+        fallbackIcon.style.display = 'none';
+      };
+      
+      // Set flag source
+      flagImg.src = flagInfo.primary;
+      flagImg.alt = `Flag of ${flagInfo.country}`;
+      
+      console.log('🏁 Showing flag for:', flagInfo.country);
+      console.log('Flag URL:', flagInfo.primary);
+    } else {
+      // No flag available, show fallback location icon
+      flagImg.style.display = 'none';
+      fallbackIcon.style.display = 'inline-block';
+      console.log('📍 No flag available, showing location icon for:', countryName || countryCode);
+    }
+  }
+  
+  // Test function to manually test flag loading
+  function testFlag(countryName, countryCode) {
+    console.log('=== FLAG TEST ===');
+    console.log('Testing flag for:', countryName, countryCode);
+    
+    // Test the flag lookup
+    const flagInfo = getCountryFlagIcon(countryName, countryCode);
+    console.log('Flag info:', flagInfo);
+    
+    // Test updating the flag
+    updateCountryFlag(countryName, countryCode);
+    
+    // Test direct URL access
+    if (flagInfo.hasFlag) {
+      console.log('Testing direct URL access...');
+      fetch(flagInfo.primary)
+        .then(response => {
+          console.log('URL fetch response:', response.status, response.statusText);
+          return response.text();
+        })
+        .then(text => {
+          console.log('Flag file content length:', text.length);
+          console.log('Flag file preview:', text.substring(0, 200) + '...');
+        })
+        .catch(error => {
+          console.error('Flag URL fetch error:', error);
+        });
+    }
+  }
+  
+  // Add test function to global scope for debugging
+  window.testFlag = testFlag;
+  
+  // Test function to manually test location with Austin coordinates
+  async function testAustinLocation() {
+    console.log('=== AUSTIN LOCATION TEST ===');
+    // Austin, Texas coordinates (approximately downtown)
+    const austinLat = 30.2672;
+    const austinLon = -97.7431;
+    
+    console.log('Testing Austin coordinates:', austinLat, austinLon);
+    
+    try {
+      const location = await reverseGeocodeWithNominatim(austinLat, austinLon);
+      console.log('Austin location result:', location);
+    } catch (error) {
+      console.error('Austin location test failed:', error);
+    }
+  }
+  
+  // Add test function to global scope
+  window.testAustinLocation = testAustinLocation;
+  
+  // Function to manually override location to Austin for testing
+  function forceAustinLocation() {
+    console.log('=== FORCING AUSTIN LOCATION ===');
+    // Austin, Texas coordinates
+    const austinLat = 30.2672;
+    const austinLon = -97.7431;
+    
+    // Update the display immediately
+    placeEl.textContent = "Austin, Texas, United States";
+    
+    // Update country flag
+    updateCountryFlag("United States", "US");
+    
+    // Fetch weather for Austin
+    fetchWeather(austinLat, austinLon);
+    
+    console.log('Forced Austin location display');
+  }
+  
+  // Add to global scope
+  window.forceAustinLocation = forceAustinLocation;
   
   async function fetchWeather(lat, lon){
     try {
@@ -1504,148 +1608,6 @@
     });
   }
   
-  // Method 3: Fallback to IP location with multiple services
-  async function getLocationFromGoogle(){
-    try {
-      const res = await fetchWithRetry("https://www.googleapis.com/geolocation/v1/geolocate?key=" + GOOGLE_GEO_KEY, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ considerIp: true })
-      });
-      
-      if (!res.ok) {
-        throw new Error(`Google Geolocation API failed: ${res.status} ${res.statusText}`);
-      }
-      
-      const data = await res.json();
-      
-      if (data.error) {
-        throw new Error(`Google Geolocation API error: ${data.error.message}`);
-      }
-      
-      return {
-        lat: data.location.lat,
-        lon: data.location.lng,
-        source: "IP Location (Google)"
-      };
-    } catch (error) {
-      // Don't log CORS errors as they're expected when opening HTML files locally
-      if (!error.message.includes('CORS') && !error.message.includes('403')) {
-        console.warn('Google IP location failed:', error.message);
-      }
-      throw error;
-    }
-  }
-
-  // Alternative IP location services
-  async function getIPLocationFromIpApi() {
-    try {
-      const res = await fetchWithRetry('https://ip-api.com/json/?fields=status,lat,lon');
-      
-      if (!res.ok) {
-        throw new Error(`IP-API failed: ${res.status} ${res.statusText}`);
-      }
-      
-      const data = await res.json();
-      
-      if (data.status !== 'success') {
-        throw new Error('IP-API request failed');
-      }
-      
-      return {
-        lat: data.lat,
-        lon: data.lon,
-        source: "IP Location (IP-API)"
-      };
-    } catch (error) {
-      // Don't log CORS errors as they're expected when opening HTML files locally
-      if (!error.message.includes('CORS') && !error.message.includes('403')) {
-        console.warn('IP-API location failed:', error.message);
-      }
-      throw error;
-    }
-  }
-
-  async function getIPLocationFromIpInfo() {
-    try {
-      const res = await fetchWithRetry('https://ipinfo.io/json');
-      
-      if (!res.ok) {
-        throw new Error(`IPInfo failed: ${res.status} ${res.statusText}`);
-      }
-      
-      const data = await res.json();
-      
-      if (!data.loc) {
-        throw new Error('IPInfo request failed - no location data');
-      }
-      
-      const [lat, lon] = data.loc.split(',').map(Number);
-      return {
-        lat: lat,
-        lon: lon,
-        source: "IP Location (IPInfo)"
-      };
-    } catch (error) {
-      // Don't log CORS errors as they're expected when opening HTML files locally
-      if (!error.message.includes('CORS') && !error.message.includes('403')) {
-        console.warn('IPInfo location failed:', error.message);
-      }
-      throw error;
-    }
-  }
-
-  async function getIPLocationFromIpApi2() {
-    try {
-      const res = await fetchWithRetry('https://ipapi.co/json/');
-      
-      if (!res.ok) {
-        throw new Error(`IPAPI.co failed: ${res.status} ${res.statusText}`);
-      }
-      
-      const data = await res.json();
-      
-      if (data.error) {
-        throw new Error(`IPAPI.co error: ${data.reason}`);
-      }
-      
-      return {
-        lat: data.latitude,
-        lon: data.longitude,
-        source: "IP Location (IPAPI.co)"
-      };
-    } catch (error) {
-      // Don't log CORS errors as they're expected when opening HTML files locally
-      if (!error.message.includes('CORS') && !error.message.includes('403')) {
-        console.warn('IPAPI.co location failed:', error.message);
-      }
-      throw error;
-    }
-  }
-
-  // Try multiple IP location services in order
-  async function getIPLocation() {
-    const services = [
-      getLocationFromGoogle,
-      getIPLocationFromIpApi,
-      getIPLocationFromIpInfo,
-      getIPLocationFromIpApi2
-    ];
-
-    for (const service of services) {
-      try {
-        const result = await service();
-        console.log('IP location success:', result.source);
-        return result;
-      } catch (error) {
-        console.warn('IP location service failed, trying next...', error);
-        continue;
-      }
-    }
-    
-    throw new Error('All IP location services failed');
-  }
-  
   async function updateLocationAndWeather(showLoadingMessages = true){
     try {
       let locationData = null;
@@ -1664,32 +1626,20 @@
         }
       }
       
-      // Try Method 3: IP location fallback
-      if (!locationData) {
-        if (showLoadingMessages) {
-          placeEl.textContent = "Using IP location...";
-        }
-        try {
-          locationData = await getIPLocation();
-        } catch (ipError) {
-          console.error('All IP location services failed:', ipError);
-        }
-      }
-      
-      // Use last known location as final fallback (expanded conditions)
-      if (!locationData && lastKnownLocation) {
+      // Use last known GPS location as fallback (expanded conditions)
+      if (!locationData && lastKnownGPSLocation) {
         const now = Date.now();
-        const locationAge = now - (lastKnownLocation.timestamp || 0);
+        const locationAge = now - (lastKnownGPSLocation.timestamp || 0);
         
         // Use shorter cache time if GPS is working well (more responsive to location changes)
         const maxCacheAge = gpsSuccessful ? 300000 : 600000; // 5 minutes if GPS works, 10 minutes otherwise
         
-        // Use cached location if it's recent
+        // Use cached GPS location if it's recent
         if (locationAge < maxCacheAge) {
-          locationData = lastKnownLocation;
-          console.log('Using cached location (age:', Math.round(locationAge/60000), 'minutes, GPS successful:', gpsSuccessful, ')');
+          locationData = lastKnownGPSLocation;
+          console.log('Using cached GPS location (age:', Math.round(locationAge/60000), 'minutes, GPS successful:', gpsSuccessful, ')');
         } else {
-          console.log('Cached location expired (age:', Math.round(locationAge/60000), 'minutes, max:', Math.round(maxCacheAge/60000), 'minutes)');
+          console.log('Cached GPS location expired (age:', Math.round(locationAge/60000), 'minutes, max:', Math.round(maxCacheAge/60000), 'minutes)');
         }
       }
       
@@ -1697,9 +1647,9 @@
       if (locationData) {
         // Check if this is a significantly different location (more than ~1km away)
         let isSignificantMove = false;
-        if (lastKnownLocation && lastKnownLocation.lat && lastKnownLocation.lon) {
-          const latDiff = Math.abs(locationData.lat - lastKnownLocation.lat);
-          const lonDiff = Math.abs(locationData.lon - lastKnownLocation.lon);
+        if (lastKnownGPSLocation && lastKnownGPSLocation.lat && lastKnownGPSLocation.lon) {
+          const latDiff = Math.abs(locationData.lat - lastKnownGPSLocation.lat);
+          const lonDiff = Math.abs(locationData.lon - lastKnownGPSLocation.lon);
           const approximateDistance = Math.sqrt(latDiff * latDiff + lonDiff * lonDiff) * 111000; // Rough conversion to meters
           
           if (approximateDistance > 1000) { // More than 1km
@@ -1712,8 +1662,12 @@
           }
         }
         
-        lastKnownLocation = locationData;
-        lastKnownLocation.timestamp = Date.now();
+        // Only save GPS locations to cache (not IRL Pro data)
+        if (locationData.source.includes('GPS')) {
+          lastKnownGPSLocation = locationData;
+          lastKnownGPSLocation.timestamp = Date.now();
+        }
+        
         if (showLoadingMessages) {
           placeEl.textContent = "Loading location...";
         }
@@ -1726,10 +1680,10 @@
           lastLocationName = label;
           lastLocationTimestamp = Date.now();
           
-          console.log('Location updated:', locationData.source, label);
+          // Update country flag after successful geocoding
+          updateCountryFlag(window.currentCountryName, window.currentCountryCode);
           
-          // Update country flag
-          updateCountryFlag();
+          console.log('Location updated:', locationData.source, label);
         } catch (geocodeError) {
           console.error('Geocoding failed:', geocodeError);
           
@@ -1737,27 +1691,50 @@
           if (lastLocationName) {
             console.log('Using cached location name due to geocoding failure');
             placeEl.textContent = lastLocationName;
-          } else {
-            // Only show "Location N/A" if we truly have no fallback options
-            console.error('No location data available from any source');
-            if (showLoadingMessages) {
-              placeEl.textContent = "Location N/A";
-              weatherEl.textContent = "Weather N/A";
+            
+            // Try to use cached country info for flag if available
+            if (window.currentCountryName || window.currentCountryCode) {
+              updateCountryFlag(window.currentCountryName, window.currentCountryCode);
             }
-            // Don't update display during silent refreshes to avoid flashing "N/A"
+          } else {
+            // Only show "Location N/A" if no cached name is available
+            placeEl.textContent = "Location N/A";
+            
+            // Show fallback location icon when no location data
+            const flagImg = document.getElementById('country-flag');
+            const fallbackIcon = document.getElementById('location-fallback');
+            if (flagImg && fallbackIcon) {
+              flagImg.style.display = 'none';
+              fallbackIcon.style.display = 'inline-block';
+            }
           }
         }
         
         // Always try to fetch weather regardless of geocoding success
         fetchWeather(locationData.lat, locationData.lon);
       } else {
-        // Only show "Location N/A" if we truly have no fallback options
-        console.error('No location data available from any source');
+        // During silent refreshes, don't immediately show "GPS N/A" - keep existing display
         if (showLoadingMessages) {
-          placeEl.textContent = "Location N/A";
-          weatherEl.textContent = "Weather N/A";
+          // Only show "GPS N/A" during initial load or user-initiated refresh
+          console.error('No GPS data available from any source');
+          placeEl.textContent = "GPS N/A";
+          
+          // Show fallback location icon when no location data
+          const flagImg = document.getElementById('country-flag');
+          const fallbackIcon = document.getElementById('location-fallback');
+          if (flagImg && fallbackIcon) {
+            flagImg.style.display = 'none';
+            fallbackIcon.style.display = 'inline-block';
+          }
+          
+          // Don't immediately clear weather - let the weather fetch handle caching
+          if (!lastWeatherData) {
+            weatherEl.textContent = "Weather N/A";
+          }
+        } else {
+          // During silent refresh failures, just log the issue but keep existing display
+          console.log('Silent location refresh failed, keeping existing display');
         }
-        // Don't update display during silent refreshes to avoid flashing "N/A"
       }
       
     } catch (e) {
@@ -1768,9 +1745,22 @@
         if (lastLocationName) {
           console.log('Using cached location name due to update failure');
           placeEl.textContent = lastLocationName;
+          
+          // Try to use cached country info for flag if available
+          if (window.currentCountryName || window.currentCountryCode) {
+            updateCountryFlag(window.currentCountryName, window.currentCountryCode);
+          }
         } else {
-          // Only show "Location N/A" if no cached name is available
-          placeEl.textContent = "Location N/A";
+          // Only show "GPS N/A" if no cached name is available
+          placeEl.textContent = "GPS N/A";
+          
+          // Show fallback location icon when no location data
+          const flagImg = document.getElementById('country-flag');
+          const fallbackIcon = document.getElementById('location-fallback');
+          if (flagImg && fallbackIcon) {
+            flagImg.style.display = 'none';
+            fallbackIcon.style.display = 'inline-block';
+          }
         }
         
         // Don't immediately clear weather - let cached data persist
@@ -1821,11 +1811,27 @@
     console.log('🔄 Clearing all location caches...');
     
     // Clear all cached location data
-    lastKnownLocation = null;
+    lastKnownGPSLocation = null;
     lastLocationName = null;
     lastLocationTimestamp = 0;
     lastWeatherData = null;
     lastWeatherTimestamp = 0;
+    
+    // Clear any browser cache for Nominatim requests
+    if ('caches' in window) {
+      caches.keys().then(cacheNames => {
+        cacheNames.forEach(cacheName => {
+          if (cacheName.includes('nominatim') || cacheName.includes('openstreetmap')) {
+            caches.delete(cacheName);
+            console.log('Cleared cache:', cacheName);
+          }
+        });
+      });
+    }
+    
+    // Clear country information for flag display
+    window.currentCountryName = null;
+    window.currentCountryCode = null;
     
     // Reset GPS state to allow fresh attempts
     gpsSuccessful = false;
@@ -1846,6 +1852,14 @@
     placeEl.textContent = "🔄 Refreshing location...";
     weatherEl.textContent = "Loading...";
     
+    // Show fallback location icon during refresh
+    const flagImg = document.getElementById('country-flag');
+    const fallbackIcon = document.getElementById('location-fallback');
+    if (flagImg && fallbackIcon) {
+      flagImg.style.display = 'none';
+      fallbackIcon.style.display = 'inline-block';
+    }
+    
     // Small delay to show the refreshing message
     setTimeout(() => {
       updateLocationAndWeather(true);
@@ -1857,8 +1871,8 @@
     console.log('🔄 Forcing location refresh...');
     
     // Expire current location cache to force new lookup
-    if (lastKnownLocation) {
-      lastKnownLocation.timestamp = Date.now() - 700000; // Make it older than 10 minutes
+    if (lastKnownGPSLocation) {
+      lastKnownGPSLocation.timestamp = Date.now() - 700000; // Make it older than 10 minutes
     }
     
     // Reset GPS state to allow fresh attempts
@@ -1866,6 +1880,15 @@
     consecutiveGPSFailures = 0;
     
     placeEl.textContent = "🔄 Updating location...";
+    
+    // Show fallback location icon during refresh
+    const flagImg = document.getElementById('country-flag');
+    const fallbackIcon = document.getElementById('location-fallback');
+    if (flagImg && fallbackIcon) {
+      flagImg.style.display = 'none';
+      fallbackIcon.style.display = 'inline-block';
+    }
+    
     updateLocationAndWeather(true);
   }
 
@@ -1910,6 +1933,14 @@
   placeEl.addEventListener('mouseleave', function() {
     this.style.opacity = '1';
   });
+  
+  // Initialize with fallback location icon
+  const flagImg = document.getElementById('country-flag');
+  const fallbackIcon = document.getElementById('location-fallback');
+  if (flagImg && fallbackIcon) {
+    flagImg.style.display = 'none';
+    fallbackIcon.style.display = 'inline-block';
+  }
   
   // Start immediately (with loading messages)
   updateLocationAndWeather(true);
